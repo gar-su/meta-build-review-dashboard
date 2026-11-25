@@ -77,6 +77,11 @@ h1{font-size:20px;line-height:1.3;margin:4px 0 2px;font-weight:600;letter-spacin
 .content{padding:16px 24px 48px;display:flex;flex-direction:column;gap:14px;max-width:1600px;width:100%}
 .page-container{display:none;flex-direction:column;gap:14px}
 .page-container.active{display:flex}
+.dash-section{display:flex;flex-direction:column;gap:14px;scroll-margin-top:96px;padding-top:18px;border-top:1px solid var(--line)}
+.dash-section:first-child{padding-top:0;border-top:0}
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.section-head h2{font-size:18px;line-height:1.35;margin:3px 0 0;font-weight:600}
+.section-head .hint{font-size:11px;color:var(--muted);margin-top:3px}
 .notices{display:flex;flex-wrap:wrap;gap:6px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
 .card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
@@ -228,9 +233,9 @@ tbody tr.clickable:hover{background:#fafaf6}
       </div>
     </div>
     <nav class="nav" id="nav" aria-label="主导航">
-      <button class="nav-item active" data-page="overview"><span class="nav-ini">总</span><span class="nav-dot"></span><span class="nav-text">总览</span></button>
-      <button class="nav-item" data-page="team"><span class="nav-ini">团</span><span class="nav-dot"></span><span class="nav-text">团队和人员</span></button>
-      <button class="nav-item" data-page="detail"><span class="nav-ini">拒</span><span class="nav-dot"></span><span class="nav-text">拒审明细</span></button>
+      <button class="nav-item active" data-target="sec-overview"><span class="nav-ini">总</span><span class="nav-dot"></span><span class="nav-text">总览</span></button>
+      <button class="nav-item" data-target="sec-team"><span class="nav-ini">团</span><span class="nav-dot"></span><span class="nav-text">团队和人员</span></button>
+      <button class="nav-item" data-target="sec-detail"><span class="nav-ini">拒</span><span class="nav-dot"></span><span class="nav-text">拒审明细</span></button>
     </nav>
     <div class="rail-foot">
       <div class="rail-label">视角 / ROLE</div>
@@ -245,9 +250,9 @@ tbody tr.clickable:hover{background:#fafaf6}
   <main class="main">
     <header class="topbar">
       <div>
-        <div class="eyebrow" id="pageEyebrow">OVERVIEW</div>
-        <h1 id="pageTitle">拒审态势</h1>
-        <div class="page-sub" id="pageSub">Meta 渠道基建与拒审概览</div>
+        <div class="eyebrow" id="pageEyebrow">META / BUILD &amp; REVIEW</div>
+        <h1 id="pageTitle">基建与拒审看板</h1>
+        <div class="page-sub" id="pageSub">一页查看总览、团队和人员、拒审明细</div>
       </div>
       <div class="top-meta">
         <span class="chip info" id="rangeChip">--</span>
@@ -272,7 +277,7 @@ tbody tr.clickable:hover{background:#fafaf6}
       <button class="btn-ghost" id="btnClearFilters">清除筛选</button>
     </div>
     <div class="content">
-      <section class="page-container active" id="page-overview">
+      <section class="dash-section" id="sec-overview">
         <div class="notices" id="notices"></div>
         <div class="kpi-grid" id="kpiGrid"></div>
         <section class="card">
@@ -287,7 +292,8 @@ tbody tr.clickable:hover{background:#fafaf6}
           <div class="rank" id="reasonRank"></div>
         </section>
       </section>
-      <section class="page-container" id="page-team">
+      <section class="dash-section" id="sec-team">
+        <div class="section-head"><div><div class="eyebrow">TEAM &amp; PEOPLE</div><h2>团队和人员</h2><div class="hint">账户与投手、素材与剪辑的基建与拒审</div></div></div>
         <section class="card">
           <div class="toolbar">
             <div class="search"><input id="accountSearch" placeholder="搜索账户、投手或团队" aria-label="搜索账户"></div>
@@ -328,11 +334,11 @@ tbody tr.clickable:hover{background:#fafaf6}
           <div class="empty" id="materialEmpty" hidden><h3>没有匹配的素材</h3><p>当前筛选或搜索条件下没有素材数据，试试放宽条件。</p><button class="btn line" data-clear>清除筛选</button></div>
         </section>
       </section>
-      <section class="page-container" id="page-detail">
+      <section class="dash-section" id="sec-detail">
+        <div class="section-head"><div><div class="eyebrow">REJECTED ADS</div><h2>拒审明细</h2><div class="hint">以广告为单位的拒审记录</div></div><span class="chip info" id="accountChip" hidden></span></div>
         <section class="card">
           <div class="toolbar">
             <div class="search"><input id="detailSearch" placeholder="搜索广告、Campaign 或素材名" aria-label="搜索拒审明细"></div>
-            <span class="chip info" id="accountChip" hidden></span>
             <span class="count-note" id="detailCount">--</span>
           </div>
           <div class="table-wrap">
@@ -565,9 +571,9 @@ tbody tr.clickable:hover{background:#fafaf6}
   }
 
   /* ---------- 状态 ---------- */
-  var PAGE = 'overview';
   var ROLE = 'admin';
   var PRESET = 'yesterday';
+  var ACTIVE_SECTION = 'sec-overview';
   var CUSTOM = { from: fmtDate(addDays(TODAY0, -6)), to: fmtDate(TODAY0) };
   var FILTERS = { team: '', person: '', lang: '', drama: '', attr: '', account: '' };
   var SEARCH = { account: '', material: '', detail: '' };
@@ -575,12 +581,6 @@ tbody tr.clickable:hover{background:#fafaf6}
   var PG = { detail: 1 };
   var PAGE_SIZE = 20;
   var DRAWER_RETURN = null;
-
-  var PAGES = {
-    overview: { eyebrow: 'OVERVIEW', title: '拒审态势', sub: 'Meta 渠道基建与拒审概览' },
-    team: { eyebrow: 'TEAM & PEOPLE', title: '团队和人员', sub: '账户、投手与剪辑素材的基建与拒审' },
-    detail: { eyebrow: 'REJECTED ADS', title: '拒审明细', sub: '以广告为单位的拒审记录' }
-  };
 
   /* ---------- 范围与筛选 ---------- */
   function getRange() {
@@ -752,14 +752,6 @@ tbody tr.clickable:hover{background:#fafaf6}
   }
 
   function renderChrome() {
-    var meta = PAGES[PAGE];
-    document.getElementById('pageEyebrow').textContent = meta.eyebrow;
-    document.getElementById('pageTitle').textContent = meta.title;
-    document.getElementById('pageSub').textContent = meta.sub;
-    var navBtns = document.querySelectorAll('.nav-item');
-    for (var i = 0; i < navBtns.length; i++) navBtns[i].classList.toggle('active', navBtns[i].getAttribute('data-page') === PAGE);
-    var containers = document.querySelectorAll('.page-container');
-    for (var j = 0; j < containers.length; j++) containers[j].classList.toggle('active', containers[j].id === 'page-' + PAGE);
     document.getElementById('roleSelect').value = ROLE;
     var role = ROLES[ROLE];
     var accs = visibleAccounts();
@@ -1203,7 +1195,7 @@ tbody tr.clickable:hover{background:#fafaf6}
     var pageRows = rows.slice((PG.detail - 1) * PAGE_SIZE, PG.detail * PAGE_SIZE);
     document.getElementById('detailCount').textContent = rows.length + ' 条拒审 · ' + rangeText(range);
     var empty = document.getElementById('detailEmpty');
-    var table = document.querySelector('#page-detail .table-wrap');
+    var table = document.querySelector('#sec-detail .table-wrap');
     if (!rows.length) { empty.hidden = false; table.hidden = true; } else { empty.hidden = true; table.hidden = false; }
     document.getElementById('detailBody').innerHTML = pageRows.map(function (a) { return adRow(a, false); }).join('');
     renderPager('detailPager', rows.length, PG.detail, totalPages, 'detail');
@@ -1328,17 +1320,22 @@ tbody tr.clickable:hover{background:#fafaf6}
     document.getElementById('detailSearch').value = '';
     ['fTeam', 'fPerson', 'fLang', 'fDrama', 'fAttr'].forEach(function (id) { var el = document.getElementById(id); if (el) el.value = ''; });
   }
-  function goPage(p) {
-    PAGE = p;
-    renderChrome();
-    if (p === 'overview') renderOverview();
-    else if (p === 'team') { renderAccounts(); renderMaterials(); }
-    else if (p === 'detail') renderDetail();
+  function setActiveSection(id) {
+    ACTIVE_SECTION = id;
+    var btns = document.querySelectorAll('.nav-item');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-target') === id);
+  }
+  function goSection(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    setActiveSection(id);
+    var top = el.getBoundingClientRect().top + window.scrollY - 88;
+    window.scrollTo(0, Math.max(0, top));
   }
   function bindEvents() {
     document.getElementById('nav').addEventListener('click', function (e) {
       var b = e.target.closest('.nav-item');
-      if (b) goPage(b.getAttribute('data-page'));
+      if (b) goSection(b.getAttribute('data-target'));
     });
     document.getElementById('roleSelect').addEventListener('change', function (e) {
       ROLE = e.target.value;
@@ -1375,8 +1372,8 @@ tbody tr.clickable:hover{background:#fafaf6}
       if (!tr) return;
       FILTERS.account = tr.getAttribute('data-account');
       PG.detail = 1;
-      PAGE = 'detail';
       renderAll();
+      goSection('sec-detail');
     });
     document.getElementById('materialBody').addEventListener('click', function (e) {
       var tr = e.target.closest('tr[data-material]');
@@ -1435,9 +1432,18 @@ tbody tr.clickable:hover{background:#fafaf6}
       if (e.target.closest && e.target.closest('[data-tip]')) hideTip();
     });
     window.addEventListener('resize', debounce(function () {
-      if (PAGE === 'overview') renderOverview();
-      else if (PAGE === 'team') { renderAccounts(); renderMaterials(); }
+      renderOverview();
     }, 180));
+    window.addEventListener('scroll', debounce(function () {
+      var y = window.scrollY + 200;
+      var cur = 'sec-overview';
+      ['sec-overview', 'sec-team', 'sec-detail'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top + window.scrollY <= y) cur = id;
+      });
+      if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4) cur = 'sec-detail';
+      if (cur !== ACTIVE_SECTION) setActiveSection(cur);
+    }, 90));
   }
 
   function renderAll() {
@@ -1464,6 +1470,7 @@ tbody tr.clickable:hover{background:#fafaf6}
     document.getElementById('fFrom').value = CUSTOM.from;
     document.getElementById('fTo').value = CUSTOM.to;
     bindEvents();
+    setActiveSection('sec-overview');
     renderAll();
   }
 
