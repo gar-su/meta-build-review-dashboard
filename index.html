@@ -275,7 +275,6 @@ tbody tr.clickable:hover{background:#fafaf6}
       <div class="f-item"><span>人员</span><select id="fPerson" aria-label="人员"></select></div>
       <div class="f-item"><span>语种</span><select id="fLang" aria-label="语种"></select></div>
       <div class="f-item"><span>短剧</span><select id="fDrama" aria-label="短剧"></select></div>
-      <div class="f-item"><span>归因</span><select id="fAttr" aria-label="归因状态"></select></div>
       <button class="btn-ghost" id="btnClearFilters">清除筛选</button>
     </div>
     <div class="content">
@@ -573,7 +572,7 @@ tbody tr.clickable:hover{background:#fafaf6}
   var ACTIVE_SECTION = 'sec-overview';
   var GROUP_MODE = 'team';
   var CUSTOM = { from: fmtDate(addDays(TODAY0, -6)), to: fmtDate(TODAY0) };
-  var FILTERS = { team: '', person: '', lang: '', drama: '', attr: '' };
+  var FILTERS = { team: '', person: '', lang: '', drama: '' };
   var SEARCH = { detail: '' };
   var SORT = { account: 'rate_desc', material: 'reject_desc' };
   var PG = { detail: 1 };
@@ -627,8 +626,6 @@ tbody tr.clickable:hover{background:#fafaf6}
     }
     if (FILTERS.lang && (!m || m.lang !== FILTERS.lang)) return false;
     if (FILTERS.drama && (!m || m.drama !== FILTERS.drama)) return false;
-    if (FILTERS.attr === 'attributed' && !m) return false;
-    if (FILTERS.attr === 'unattributed' && m) return false;
     return true;
   }
   function baseAds() { return ADS.filter(roleOk).filter(matchBase); }
@@ -729,10 +726,6 @@ tbody tr.clickable:hover{background:#fafaf6}
     fillSelect('fPerson', Object.keys(persons).sort(), '全部人员', 'person');
     fillSelect('fLang', Object.keys(langs).sort(), '全部语种', 'lang');
     fillSelect('fDrama', Object.keys(dramas).sort(), '全部短剧', 'drama');
-    fillSelect('fAttr', [], '', 'attr');
-    var attr = document.getElementById('fAttr');
-    attr.innerHTML = '<option value="">全部归因</option><option value="attributed">已归因</option><option value="unattributed">未归因</option>';
-    attr.value = FILTERS.attr;
   }
   function fillSelect(id, list, placeholder, key) {
     var el = document.getElementById(id);
@@ -1043,7 +1036,7 @@ tbody tr.clickable:hover{background:#fafaf6}
         return { key: b, label: b, sub: seenBuyers[b], pred: function (ad) { return ACCMAP[ad.accountId].buyer === b; } };
       });
     }
-    var narrow = FILTERS.person || FILTERS.lang || FILTERS.drama || FILTERS.attr || FILTERS.team;
+    var narrow = FILTERS.person || FILTERS.lang || FILTERS.drama || FILTERS.team;
     var rows = groups.map(function (g) {
       var m = groupMetrics(g.pred, range, base);
       return { key: g.key, label: g.label, sub: g.sub, campaigns: m.campaigns, ads: m.ads, rejects: m.rejects, rate: m.rate, spark: m.spark };
@@ -1258,11 +1251,11 @@ tbody tr.clickable:hover{background:#fafaf6}
 
   /* ---------- 事件 ---------- */
   function resetFilters() {
-    FILTERS = { team: '', person: '', lang: '', drama: '', attr: '' };
+    FILTERS = { team: '', person: '', lang: '', drama: '' };
     SEARCH = { detail: '' };
     PG = { detail: 1 };
     document.getElementById('detailSearch').value = '';
-    ['fTeam', 'fPerson', 'fLang', 'fDrama', 'fAttr'].forEach(function (id) { var el = document.getElementById(id); if (el) el.value = ''; });
+    ['fTeam', 'fPerson', 'fLang', 'fDrama'].forEach(function (id) { var el = document.getElementById(id); if (el) el.value = ''; });
   }
   function setActiveSection(id) {
     ACTIVE_SECTION = id;
@@ -1296,7 +1289,7 @@ tbody tr.clickable:hover{background:#fafaf6}
       PG = { detail: 1 };
       renderAll();
     });
-    ['fTeam', 'fPerson', 'fLang', 'fDrama', 'fAttr'].forEach(function (id) {
+    ['fTeam', 'fPerson', 'fLang', 'fDrama'].forEach(function (id) {
       document.getElementById(id).addEventListener('change', function (e) {
         FILTERS[id.slice(1).toLowerCase()] = e.target.value;
         PG = { detail: 1 };
