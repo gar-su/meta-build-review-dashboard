@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meta 基建拒审看板</title>
+<style>
+:root{
+  --ink:#101418; --ink-2:#1b222a; --ink-3:#2a333d;
+  --paper:#f4f4f0; --surface:#fcfcfb; --surface-2:#f7f7f3;
+  --line:#e4e3dc; --line-strong:#cfcec6;
+  --text:#15181b; --text-2:#565550; --muted:#8a8880;
+  --blue:#2a78d6; --blue-weak:#eaf2fc; --blue-ink:#184f95;
+  --orange:#eb6834; --orange-weak:#fceee8;
+  --red:#d03b3b; --red-weak:#faeded;
+  --green:#0ca30c; --green-weak:#eaf6ea;
+  --amber:#fab219; --amber-weak:#fdf4dd;
+  --radius:6px;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--text);font:14px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.app{display:flex;min-height:100vh}
+.rail{width:212px;flex:0 0 212px;background:var(--ink);color:#aab1b8;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;z-index:30}
+.brand{display:flex;gap:10px;align-items:center;padding:20px 16px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
+.brand-mark{width:34px;height:34px;border:1px solid rgba(255,255,255,.28);border-radius:4px;display:flex;align-items:center;justify-content:center;font:600 12px/1 var(--mono);letter-spacing:.08em;color:#fff}
+.brand-name{color:#fff;font-weight:600;font-size:14px;letter-spacing:.02em}
+.brand-sub{font:10px/1.6 var(--mono);letter-spacing:.16em;color:#7e8790;margin-top:2px}
+.nav{padding:12px 8px;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:10px;width:100%;height:38px;padding:0 10px;background:transparent;border:0;border-left:2px solid transparent;border-radius:4px;color:#aab1b8;text-align:left;font-size:13px}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav-item.active{background:var(--ink-2);color:#fff;border-left-color:var(--blue)}
+.nav-ini{display:none;width:18px;font:600 12px var(--mono)}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:#5d6873;flex:0 0 5px}
+.nav-item.active .nav-dot{background:var(--blue)}
+.nav-badge{margin-left:auto;font:10px/1 var(--mono);background:var(--orange);color:#fff;border-radius:8px;padding:3px 5px}
+.rail-foot{margin-top:auto;padding:14px 14px 18px;border-top:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;gap:8px}
+.rail-label{font:10px/1 var(--mono);letter-spacing:.14em;color:#6f7881;text-transform:uppercase}
+.role-select{width:100%;height:32px;background:var(--ink-2);color:#e8ecef;border:1px solid #333d47;border-radius:4px;padding:0 8px;font-size:12px}
+.scope-note{font-size:11px;line-height:1.6;color:#8d959d}
+.scope-note b{color:#c9d0d6;font-weight:500}
+.fresh{display:flex;align-items:flex-start;gap:7px;font-size:11px;color:#8d959d;line-height:1.5}
+.fresh-dot{width:6px;height:6px;border-radius:50%;background:var(--green);margin-top:5px;flex:0 0 6px}
+.fresh.warn .fresh-dot{background:var(--amber)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:18px 24px 14px;border-bottom:1px solid var(--line)}
+.eyebrow{font:10px/1.4 var(--mono);letter-spacing:.15em;color:var(--muted);text-transform:uppercase}
+h1{font-size:20px;line-height:1.3;margin:4px 0 2px;font-weight:600;letter-spacing:.01em}
+.page-sub{font-size:12px;color:var(--text-2)}
+.top-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;line-height:1;padding:5px 7px;border-radius:3px;border:1px solid var(--line);background:var(--surface);color:var(--text-2);white-space:nowrap}
+.chip .ico{width:12px;height:12px;display:inline-flex;align-items:center;justify-content:center;font-size:10px}
+.chip.good{color:var(--green);border-color:#cde8cd;background:var(--green-weak)}
+.chip.warn{color:#8a6200;border-color:#f0dca6;background:var(--amber-weak)}
+.chip.bad{color:var(--red);border-color:#efcfcf;background:var(--red-weak)}
+.chip.info{color:var(--blue-ink);border-color:#cbdcf5;background:var(--blue-weak)}
+.chip.muted{color:var(--text-2)}
+.filters{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 24px;background:rgba(244,244,240,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:4px;overflow:hidden;background:var(--surface)}
+.seg button{height:30px;padding:0 10px;border:0;background:var(--surface);font-size:12px;color:var(--text-2);border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button.active{background:var(--ink);color:#fff}
+.seg.small button{height:26px;padding:0 9px;font-size:11px}
+.filters select,.filters input[type=date]{height:30px;border:1px solid var(--line-strong);border-radius:4px;background:var(--surface);padding:0 8px;font-size:12px;color:var(--text);max-width:150px}
+.filters input[type=date]{padding:0 6px}
+.f-item{display:flex;align-items:center;gap:5px}
+.f-item span{font-size:11px;color:var(--muted)}
+.btn-ghost{height:30px;border:1px solid var(--line-strong);background:var(--surface);border-radius:4px;padding:0 10px;font-size:12px;color:var(--text-2)}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue)}
+.custom-range{display:flex;align-items:center;gap:6px}
+.content{padding:16px 24px 48px;display:flex;flex-direction:column;gap:14px;max-width:1600px;width:100%}
+.page-container{display:none;flex-direction:column;gap:14px}
+.page-container.active{display:flex}
+.notices{display:flex;flex-wrap:wrap;gap:6px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.card-head h2{font-size:14px;font-weight:600;margin:3px 0 0}
+.card-head .hint{font-size:11px;color:var(--muted);margin-top:3px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 13px 8px;min-height:112px;display:flex;flex-direction:column;gap:2px}
+.kpi-label{font-size:11px;color:var(--text-2);display:flex;align-items:center;gap:6px}
+.kpi-label .mono{font:9px/1 var(--mono);letter-spacing:.12em;color:var(--muted)}
+.kpi-value{font-size:28px;line-height:1.2;font-weight:600;letter-spacing:-.015em;margin-top:4px}
+.kpi-value small{font-size:12px;font-weight:400;color:var(--text-2);margin-left:3px;letter-spacing:0}
+.kpi-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:2px}
+.delta{font-size:11px;color:var(--text-2);display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.delta.good{color:var(--green)}
+.delta.bad{color:var(--red)}
+.delta.none{color:var(--muted)}
+.spark{height:30px;width:56px;flex:0 0 56px;margin-left:auto}
+.mini-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.mini{border:1px solid var(--line);border-radius:4px;padding:10px 12px 4px;background:var(--surface);min-width:0}
+.mini-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-height:36px}
+.mini-title{font-size:12px;color:var(--text);margin-top:2px}
+.mini-value{font-size:18px;font-weight:600;letter-spacing:-.01em;white-space:nowrap}
+.chart{width:100%;height:132px;margin-top:2px}
+.chart svg{display:block;overflow:visible}
+.overview-lower{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr);gap:10px}
+.band{display:flex;gap:2px;height:26px;margin:2px 0 14px}
+.band-seg{background:var(--blue);border-radius:2px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;white-space:nowrap;overflow:hidden;min-width:2px;transition:filter .12s}
+.band-seg:hover{filter:brightness(1.12)}
+.rank{display:flex;flex-direction:column;gap:7px}
+.rank-row{display:grid;grid-template-columns:18px minmax(80px,190px) minmax(40px,1fr) 48px 42px;gap:7px;align-items:center;font-size:12px}
+.rank-idx{font:10px/1 var(--mono);color:var(--muted);text-align:right}
+.rank-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.rank-track{height:6px;background:#edede8;border-radius:3px;overflow:hidden}
+.rank-fill{height:100%;background:var(--blue);border-radius:3px}
+.rank-num{text-align:right;font-variant-numeric:tabular-nums;color:var(--text)}
+.rank-pct{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);font-size:11px}
+.tag-main{font-size:9px;line-height:1;padding:2px 4px;border-radius:2px;background:var(--orange-weak);color:var(--orange);border:1px solid #f4cdbf}
+.anomaly-list{display:flex;flex-direction:column;gap:8px}
+.anomaly{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:4px;padding:9px 11px}
+.anomaly:hover{background:var(--surface-2)}
+.anomaly.rise{border-left-color:var(--amber)}
+.anomaly-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sev{display:inline-flex;align-items:center;gap:4px;font-size:10px;line-height:1;padding:3px 5px;border-radius:2px;font-weight:500}
+.sev.crit{background:var(--red-weak);color:var(--red);border:1px solid #efcfcf}
+.sev.warn{background:var(--amber-weak);color:#8a6200;border:1px solid #f0dca6}
+.sev-ico{font-size:10px;line-height:1}
+.anomaly-title{font-size:12px;font-weight:500;margin-left:2px}
+.anomaly-detail{font-size:11px;color:var(--text-2);margin-top:4px;line-height:1.5}
+.anomaly-empty{padding:22px 10px;text-align:center;color:var(--muted);font-size:12px;border:1px dashed var(--line-strong);border-radius:4px}
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.toolbar .grow{flex:1}
+.search{position:relative;flex:0 0 240px}
+.search input{width:100%;height:32px;border:1px solid var(--line-strong);border-radius:4px;background:var(--surface);padding:0 10px;font-size:12px}
+.toolbar select{height:32px;border:1px solid var(--line-strong);border-radius:4px;background:var(--surface);padding:0 8px;font-size:12px}
+.count-note{font-size:11px;color:var(--muted);white-space:nowrap}
+.table-wrap{width:100%;overflow:hidden;border:1px solid var(--line);border-radius:4px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th{font-size:11px;font-weight:500;color:var(--text-2);text-align:left;background:var(--surface-2);padding:8px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+td{font-size:12px;padding:9px;border-bottom:1px solid #efeee9;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+tbody tr.clickable{cursor:pointer}
+tbody tr.clickable:hover{background:#fafaf6}
+.ta-r{text-align:right;font-variant-numeric:tabular-nums}
+.cell-stack{display:flex;flex-direction:column;line-height:1.45;min-width:0}
+.cell-stack b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cell-stack span{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.meter{display:inline-flex;align-items:center;gap:6px;justify-content:flex-end;width:100%}
+.meter-track{width:54px;height:5px;background:#edede8;border-radius:3px;overflow:hidden;flex:0 0 54px}
+.meter-fill{height:100%;background:var(--blue);border-radius:3px}
+.meter-fill.bad{background:var(--red)}
+.mini-band{display:flex;gap:2px;height:7px;width:96px;margin-left:auto}
+.mini-band i{display:block;height:7px;background:var(--blue);border-radius:1px;min-width:1px}
+.spark-cell svg{display:block}
+.empty{padding:36px 16px;text-align:center;border:1px dashed var(--line-strong);border-radius:4px;margin-top:10px;background:var(--surface)}
+.empty h3{font-size:13px;margin:0 0 4px;font-weight:500}
+.empty p{font-size:12px;color:var(--text-2);margin:0 0 12px}
+.btn{height:32px;border:0;border-radius:4px;background:var(--ink);color:#fff;padding:0 12px;font-size:12px}
+.btn.line{background:var(--surface);color:var(--text);border:1px solid var(--line-strong)}
+.pager{display:flex;align-items:center;gap:6px;justify-content:flex-end;padding-top:10px;flex-wrap:wrap}
+.pager .pg{min-width:30px;height:30px;border:1px solid var(--line-strong);background:var(--surface);border-radius:4px;font-size:12px;color:var(--text-2)}
+.pager .pg.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.pager .pg[disabled]{opacity:.4;cursor:not-allowed}
+.pager .pg-info{font-size:11px;color:var(--muted);margin-right:auto}
+.banner{display:flex;gap:9px;align-items:flex-start;border:1px solid #f0dca6;background:var(--amber-weak);border-radius:4px;padding:10px 12px;font-size:12px;color:#6e5108;line-height:1.55}
+.banner .bn-ico{font:600 12px/1.4 var(--mono);color:#8a6200}
+.summary-row{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--text-2);align-items:baseline}
+.summary-row b{font-size:18px;color:var(--text);font-weight:600;margin-right:4px}
+.trend-table{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:4px}
+.trend-table table{font-size:12px}
+.trend-table th{position:sticky;top:0}
+.drawer-mask{position:fixed;inset:0;background:rgba(16,20,24,.34);z-index:55}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:520px;max-width:94vw;background:var(--surface);z-index:60;display:flex;flex-direction:column;border-left:1px solid var(--line-strong)}
+.drawer-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 20px 14px;border-bottom:1px solid var(--line)}
+.drawer-head h2{font-size:15px;line-height:1.45;margin:4px 0 0;word-break:break-all;font-weight:600}
+.drawer-head .hint{font-size:11px;color:var(--muted);margin-top:4px}
+.drawer-actions{display:flex;gap:6px;align-items:center}
+.icon-btn{width:30px;height:30px;border:1px solid var(--line-strong);background:var(--surface);border-radius:4px;font-size:16px;line-height:1;color:var(--text-2)}
+.icon-btn:hover{border-color:var(--blue);color:var(--blue)}
+.drawer-body{padding:16px 20px 40px;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.meta-item{min-width:0}
+.meta-item .k{font:10px/1.4 var(--mono);letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.meta-item .v{font-size:12px;margin-top:2px;word-break:break-all;line-height:1.5}
+.section-label{font:10px/1.4 var(--mono);letter-spacing:.13em;color:var(--muted);text-transform:uppercase;margin-bottom:7px}
+.reason-list{display:flex;flex-direction:column;gap:7px}
+.reason-item{border:1px solid var(--line);border-radius:4px;padding:8px 10px;background:var(--surface-2)}
+.reason-item .rt{font-size:12px;font-weight:500}
+.reason-item .rs{font-size:10px;color:var(--muted);margin-top:2px}
+.preview{height:190px;border:1px solid var(--line);border-radius:4px;background:linear-gradient(135deg,#1b222a 0%,#2a333d 55%,#3a4652 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#c9d0d6;font-size:12px}
+.preview .play{width:38px;height:38px;border:1px solid rgba(255,255,255,.45);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff}
+.preview .ph{font:10px/1.4 var(--mono);letter-spacing:.1em;color:#8d959d}
+.ad-links{display:flex;flex-direction:column;gap:6px}
+.ad-link{display:grid;grid-template-columns:1fr 84px;gap:8px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:8px 9px;font-size:11px}
+.ad-link:hover{border-color:var(--blue)}
+.ad-link .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ad-link .d{color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.tip{position:fixed;z-index:80;pointer-events:none;background:var(--ink);color:#fff;font-size:11px;line-height:1.4;padding:5px 7px;border-radius:3px;box-shadow:0 2px 8px rgba(0,0,0,.18);max-width:260px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:10px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:4px}
+.legend i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media (max-width:1180px){.overview-lower{grid-template-columns:1fr}.mini-grid{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:900px){
+  .rail{width:64px;flex-basis:64px}
+  .brand-name,.brand-sub,.nav-text,.rail-label,.scope-note,.fresh span{display:none}
+  .brand{justify-content:center;padding:16px 8px}
+  .nav-item{justify-content:center;padding:0}
+  .nav-ini{display:inline}
+  .nav-dot,.nav-badge{display:none}
+  .rail-foot{padding:10px 8px}
+  .role-select{font-size:0;padding:0}
+  .topbar{padding:14px 16px}
+  .filters{padding:10px 16px}
+  .content{padding:14px 16px 40px}
+  .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .meta-grid{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <div class="brand">
+      <div class="brand-mark">MB</div>
+      <div>
+        <div class="brand-name">Meta 基建拒审</div>
+        <div class="brand-sub">BUILD &amp; REVIEW</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav" aria-label="主导航">
+      <button class="nav-item active" data-page="overview"><span class="nav-ini">总</span><span class="nav-dot"></span><span class="nav-text">总览</span></button>
+      <button class="nav-item" data-page="accounts"><span class="nav-ini">账</span><span class="nav-dot"></span><span class="nav-text">账户与投手</span></button>
+      <button class="nav-item" data-page="materials"><span class="nav-ini">素</span><span class="nav-dot"></span><span class="nav-text">素材与剪辑</span></button>
+      <button class="nav-item" data-page="detail"><span class="nav-ini">拒</span><span class="nav-dot"></span><span class="nav-text">拒审明细</span></button>
+      <button class="nav-item" data-page="unattributed"><span class="nav-ini">未</span><span class="nav-dot"></span><span class="nav-text">未归因池</span><span class="nav-badge" id="navUnattrCount">0</span></button>
+    </nav>
+    <div class="rail-foot">
+      <div class="rail-label">视角 / ROLE</div>
+      <select class="role-select" id="roleSelect" aria-label="切换演示角色"></select>
+      <div class="scope-note" id="scopeNote">全量账户 · 全量素材</div>
+      <div class="fresh" id="freshBox">
+        <span class="fresh-dot"></span>
+        <span>数据更新至 <b id="freshTime">--:--</b><br>每小时采集 · <span id="freshState">正常</span></span>
+      </div>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow" id="pageEyebrow">OVERVIEW</div>
+        <h1 id="pageTitle">拒审态势</h1>
+        <div class="page-sub" id="pageSub">Meta 渠道基建与拒审概览</div>
+      </div>
+      <div class="top-meta">
+        <span class="chip info" id="rangeChip">--</span>
+        <span class="chip good" id="dataStateChip"><span class="ico">●</span>数据已定型</span>
+      </div>
+    </header>
+    <div class="filters" id="filterBar">
+      <div class="seg" id="dateSeg" role="group" aria-label="日期范围">
+        <button data-preset="today">今日实时</button>
+        <button data-preset="yesterday" class="active">昨日</button>
+        <button data-preset="7d">近 7 天</button>
+        <button data-preset="30d">近 30 天</button>
+        <button data-preset="custom">自定义</button>
+      </div>
+      <div class="custom-range" id="customRange" hidden>
+        <input type="date" id="fFrom" aria-label="开始日期"><span class="count-note">至</span><input type="date" id="fTo" aria-label="结束日期">
+      </div>
+      <div class="f-item"><span>团队</span><select id="fTeam" aria-label="团队"></select></div>
+      <div class="f-item"><span>投手</span><select id="fBuyer" aria-label="投手"></select></div>
+      <div class="f-item"><span>剪辑</span><select id="fEditor" aria-label="剪辑人"></select></div>
+      <div class="f-item"><span>项目</span><select id="fProject" aria-label="项目"></select></div>
+      <div class="f-item"><span>语种</span><select id="fLang" aria-label="语种"></select></div>
+      <div class="f-item"><span>短剧</span><select id="fDrama" aria-label="短剧"></select></div>
+      <div class="f-item"><span>原因</span><select id="fReason" aria-label="拒审原因"></select></div>
+      <div class="f-item"><span>归因</span><select id="fAttr" aria-label="归因状态"></select></div>
+      <button class="btn-ghost" id="btnClearFilters">清除筛选</button>
+    </div>
+    <div class="content">
+      <section class="page-container active" id="page-overview">
+        <div class="notices" id="notices"></div>
+        <div class="kpi-grid" id="kpiGrid"></div>
+        <section class="card">
+          <div class="card-head">
+            <div><div class="eyebrow">TREND</div><h2 id="trendTitle">趋势</h2><div class="hint" id="trendHint">按自然日聚合</div></div>
+            <div class="seg small" id="trendMode" role="group" aria-label="趋势视图">
+              <button data-mode="chart" class="active">图表</button><button data-mode="table">表格</button>
+            </div>
+          </div>
+          <div class="mini-grid" id="trendGrid"></div>
+          <div class="trend-table" id="trendTable" hidden></div>
+        </section>
+        <div class="overview-lower">
+          <section class="card">
+            <div class="card-head"><div><div class="eyebrow">REJECT REASONS</div><h2>拒审原因分布</h2><div class="hint">按 Meta 原始原因聚合，主因取第一条</div></div><span class="chip muted" id="reasonTotal">--</span></div>
+            <div class="band" id="reasonBand"></div>
+            <div class="rank" id="reasonRank"></div>
+          </section>
+          <section class="card">
+            <div class="card-head"><div><div class="eyebrow">ATTENTION</div><h2>异常高亮</h2><div class="hint" id="anomalyHint">固定阈值 20% / 未归因 10 / 环比 +50%</div></div><div style="display:flex;gap:6px;align-items:center"><button class="btn-ghost" id="btnThreshold" hidden>阈值设置</button><span class="chip warn" id="anomalyCount">0</span></div></div>
+            <div class="anomaly-list" id="anomalyList"></div>
+          </section>
+        </div>
+      </section>
+      <section class="page-container" id="page-accounts">
+        <section class="card">
+          <div class="toolbar">
+            <div class="search"><input id="accountSearch" placeholder="搜索账户、投手或团队" aria-label="搜索账户"></div>
+            <select id="accountSort" aria-label="账户排序">
+              <option value="rate_desc">拒审率从高到低</option>
+              <option value="reject_desc">拒审次数从多到少</option>
+              <option value="ads_desc">广告基建数从多到少</option>
+              <option value="name_asc">账户名升序</option>
+            </select>
+            <span class="count-note" id="accountCount">--</span>
+          </div>
+          <div class="table-wrap">
+            <table aria-label="账户与投手">
+              <colgroup><col style="width:19%"><col style="width:14%"><col style="width:10%"><col style="width:10%"><col style="width:10%"><col style="width:11%"><col style="width:10%"><col style="width:10%"><col style="width:6%"></colgroup>
+              <thead><tr><th>账户</th><th>团队 / 投手</th><th class="ta-r">计划基建</th><th class="ta-r">广告基建</th><th class="ta-r">拒审次数</th><th class="ta-r">拒审率</th><th class="ta-r">归因覆盖</th><th>近 7 日拒审</th><th>状态</th></tr></thead>
+              <tbody id="accountBody"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="accountEmpty" hidden><h3>没有匹配的账户</h3><p>当前筛选或搜索条件下没有账户数据，试试放宽条件。</p><button class="btn line" data-clear>清除筛选</button></div>
+        </section>
+      </section>
+      <section class="page-container" id="page-materials">
+        <section class="card">
+          <div class="toolbar">
+            <div class="search"><input id="materialSearch" placeholder="搜索素材、剪辑人或短剧" aria-label="搜索素材"></div>
+            <select id="materialSort" aria-label="素材排序">
+              <option value="reject_desc">拒审次数从多到少</option>
+              <option value="ads_desc">投放广告数从多到少</option>
+              <option value="name_asc">素材名升序</option>
+            </select>
+            <span class="count-note" id="materialCount">--</span>
+          </div>
+          <div class="table-wrap">
+            <table aria-label="素材与剪辑">
+              <colgroup><col style="width:30%"><col style="width:15%"><col style="width:10%"><col style="width:10%"><col style="width:19%"><col style="width:12%"><col style="width:4%"></colgroup>
+              <thead><tr><th>素材</th><th>剪辑 / 团队</th><th class="ta-r">投放广告</th><th class="ta-r">拒审次数</th><th>主因</th><th class="ta-r">原因分布</th><th>最近</th></tr></thead>
+              <tbody id="materialBody"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="materialEmpty" hidden><h3>没有匹配的素材</h3><p>当前筛选或搜索条件下没有素材数据，试试放宽条件。</p><button class="btn line" data-clear>清除筛选</button></div>
+        </section>
+      </section>
+      <section class="page-container" id="page-detail">
+        <section class="card">
+          <div class="toolbar">
+            <div class="search"><input id="detailSearch" placeholder="搜索广告、Campaign 或素材名" aria-label="搜索拒审明细"></div>
+            <span class="chip info" id="accountChip" hidden></span>
+            <span class="count-note" id="detailCount">--</span>
+          </div>
+          <div class="table-wrap">
+            <table aria-label="拒审明细">
+              <colgroup><col style="width:24%"><col style="width:13%"><col style="width:15%"><col style="width:14%"><col style="width:17%"><col style="width:11%"><col style="width:6%"></colgroup>
+              <thead><tr><th>广告</th><th>首次拒审</th><th>主因</th><th>账户 / 投手</th><th>素材 / 剪辑</th><th>项目 / 语种 / 短剧</th><th>状态</th></tr></thead>
+              <tbody id="detailBody"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="detailEmpty" hidden><h3>没有拒审明细</h3><p>当前筛选条件下没有拒审广告，试试切换日期或清除筛选。</p><button class="btn line" data-clear>清除筛选</button></div>
+          <div class="pager" id="detailPager"></div>
+        </section>
+      </section>
+      <section class="page-container" id="page-unattributed">
+        <div class="banner"><span class="bn-ico">!</span><div><b>未归因只展示、不认领。</b>广告名称中提取不到素材名，或素材名在素材归属系统中不存在时进入这里。本期不提供人工修正，推动上游规范广告名称或补齐素材库即可自然减少。</div></div>
+        <section class="card">
+          <div class="toolbar">
+            <div class="summary-row" id="unattrSummary"></div>
+            <span class="grow"></span>
+            <div class="search"><input id="unattrSearch" placeholder="搜索广告或账户" aria-label="搜索未归因广告"></div>
+          </div>
+          <div class="table-wrap">
+            <table aria-label="未归因拒审广告">
+              <colgroup><col style="width:28%"><col style="width:14%"><col style="width:16%"><col style="width:16%"><col style="width:14%"><col style="width:12%"></colgroup>
+              <thead><tr><th>广告</th><th>首次拒审</th><th>主因</th><th>账户 / 投手</th><th>项目 / 语种</th><th>状态</th></tr></thead>
+              <tbody id="unattrBody"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="unattrEmpty" hidden><h3>没有未归因拒审</h3><p>当前范围内所有拒审广告都已完成素材归因，或筛选条件下没有数据。</p><button class="btn line" data-clear>清除筛选</button></div>
+          <div class="pager" id="unattrPager"></div>
+        </section>
+      </section>
+    </div>
+  </main>
+</div>
+<div class="drawer-mask" id="drawerMask" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="详情抽屉">
+  <div class="drawer-head">
+    <div style="min-width:0">
+      <div class="eyebrow" id="drawerEyebrow">AD DETAIL</div>
+      <h2 id="drawerTitle">--</h2>
+      <div class="hint" id="drawerHint"></div>
+    </div>
+    <div class="drawer-actions">
+      <button class="icon-btn" id="drawerBack" hidden aria-label="返回素材">←</button>
+      <button class="icon-btn" id="drawerClose" aria-label="关闭详情">×</button>
+    </div>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+<div class="tip" id="tip" hidden></div>
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- 基础工具 ---------- */
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function fmt(n) { return Number(n || 0).toLocaleString('zh-CN'); }
+  function pct(v) { return (Number(v || 0) * 100).toFixed(1) + '%'; }
+  function pctInt(v) { return Math.round(Number(v || 0) * 100) + '%'; }
+  function startOfDay(d) { var x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
+  function addDays(d, n) { var x = new Date(d); x.setDate(x.getDate() + n); return x; }
+  function inRange(d, r) { return d && d >= r.start && d < r.end; }
+  function fmtDate(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function fmtShort(d) { return pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function fmtDateTime(d) { return fmtDate(d) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function fmtDayTime(d) { return pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function debounce(fn, ms) {
+    var t = null;
+    return function () {
+      var args = arguments;
+      clearTimeout(t);
+      t = setTimeout(function () { fn.apply(null, args); }, ms);
+    };
+  }
+
+  /* ---------- 常量与 mock 数据 ---------- */
+  var NOW = new Date();
+  var TODAY0 = startOfDay(NOW);
+  var HISTORY_DAYS = 30;
+  var LAUNCH_GAP = 8;
+  var BLUE = '#2a78d6';
+  var RED = '#d03b3b';
+  var MUTED_LINE = '#898781';
+
+  var ROLES = {
+    admin: { label: '管理员 · 全量', kind: 'admin' },
+    lead: { label: '主管 · 短剧投放一组', kind: 'lead', team: '短剧投放一组', editorTeam: '剪辑一组' },
+    buyer: { label: '投手 · 张明', kind: 'buyer', buyerName: '张明' },
+    editor: { label: '剪辑 · 李娜', kind: 'editor', editorName: '李娜' }
+  };
+
+  var TEAMS = ['短剧投放一组', '短剧投放二组'];
+  var EDITOR_TEAMS = ['剪辑一组', '剪辑二组'];
+  var ACCOUNTS = [
+    { id: 'act_1902528757007915', name: 'NS-TW-主投01', buyer: '张明', team: '短剧投放一组', lang: 'TW', delayed: false },
+    { id: 'act_1094738826111', name: 'NS-TW-主投02', buyer: '周雨', team: '短剧投放一组', lang: 'TW', delayed: false },
+    { id: 'act_2041187700331', name: 'NS-TH-主投01', buyer: '陈昊', team: '短剧投放二组', lang: 'TH', delayed: false },
+    { id: 'act_1772094538822', name: 'NS-ID-主投01', buyer: '刘洋', team: '短剧投放二组', lang: 'ID', delayed: false },
+    { id: 'act_1555088990112', name: 'NS-PT-主投01', buyer: '张明', team: '短剧投放一组', lang: 'PT', delayed: false },
+    { id: 'act_1993002211444', name: 'NS-TW-测新01', buyer: '周雨', team: '短剧投放一组', lang: 'TW', delayed: false },
+    { id: 'act_1422336677889', name: 'NS-TH-测新01', buyer: '陈昊', team: '短剧投放二组', lang: 'TH', delayed: true },
+    { id: 'act_1333004455667', name: 'NS-ID-测新01', buyer: '刘洋', team: '短剧投放二组', lang: 'ID', delayed: false }
+  ];
+  var ACCMAP = {};
+  ACCOUNTS.forEach(function (a) { ACCMAP[a.id] = a; });
+
+  var EDITORS = [
+    { name: '李娜', team: '剪辑一组' },
+    { name: '王磊', team: '剪辑一组' },
+    { name: '赵敏', team: '剪辑二组' },
+    { name: '孙悦', team: '剪辑二组' }
+  ];
+  var EDITOR_TEAM = {};
+  EDITORS.forEach(function (e) { EDITOR_TEAM[e.name] = e.team; });
+
+  var MATERIALS = [
+    { id: 'm01', name: '546_YUANHUA_EC_TW_N890_260110_MF_AISC_钩子A', editor: '李娜', editorTeam: '剪辑一组', project: 'YUANHUA', lang: 'TW', drama: 'N890' },
+    { id: 'm02', name: '547_YUANHUA_EC_TW_N890_260112_FF_MYAISC_反转B', editor: '李娜', editorTeam: '剪辑一组', project: 'YUANHUA', lang: 'TW', drama: 'N890' },
+    { id: 'm03', name: '548_YUANHUA_EC_TH_N901_260108_MF_NU_爽点C', editor: '王磊', editorTeam: '剪辑一组', project: 'YUANHUA', lang: 'TH', drama: 'N901' },
+    { id: 'm04', name: '549_YUANHUA_EC_TH_N901_260110_FF_AISC_钩子D', editor: '王磊', editorTeam: '剪辑一组', project: 'YUANHUA', lang: 'TH', drama: 'N901' },
+    { id: 'm05', name: '550_YUANHUA_EC_ID_N902_260105_MF_AISC_冲突E', editor: '赵敏', editorTeam: '剪辑二组', project: 'YUANHUA', lang: 'ID', drama: 'N902' },
+    { id: 'm06', name: '551_YUANHUA_EC_ID_N902_260107_FF_NU_悬念F', editor: '赵敏', editorTeam: '剪辑二组', project: 'YUANHUA', lang: 'ID', drama: 'N902' },
+    { id: 'm07', name: '552_YUANHUA_EC_PT_N903_260102_MF_MYAISC_复仇G', editor: '孙悦', editorTeam: '剪辑二组', project: 'YUANHUA', lang: 'PT', drama: 'N903' },
+    { id: 'm08', name: '553_YUANHUA_EC_PT_N903_260104_FF_AISC_甜宠H', editor: '孙悦', editorTeam: '剪辑二组', project: 'YUANHUA', lang: 'PT', drama: 'N903' },
+    { id: 'm09', name: '554_YUANHUA_EC_TW_N890_260115_MF_NU_反转I', editor: '李娜', editorTeam: '剪辑一组', project: 'YUANHUA', lang: 'TW', drama: 'N890' },
+    { id: 'm10', name: '555_YUANHUA_EC_TH_N904_260111_FF_AISC_打脸J', editor: '王磊', editorTeam: '剪辑一组', project: 'YUANHUA', lang: 'TH', drama: 'N904' }
+  ];
+  var MATMAP = {};
+  MATERIALS.forEach(function (m) { MATMAP[m.id] = m; });
+
+  var REASONS = [
+    { id: 'r1', text: '成人内容（过度暴露）', short: '成人内容', weight: 14 },
+    { id: 'r2', text: '误导性声明（夸大收益）', short: '误导声明', weight: 18 },
+    { id: 'r3', text: '侵犯版权（未授权影视片段）', short: '版权', weight: 16 },
+    { id: 'r4', text: '个人属性（暗示用户身份）', short: '个人属性', weight: 11 },
+    { id: 'r5', text: '不实健康声明', short: '健康声明', weight: 10 },
+    { id: 'r6', text: '落地页体验不佳', short: '落地页', weight: 12 },
+    { id: 'r7', text: '禁止的金融产品与服务', short: '金融', weight: 8 },
+    { id: 'r8', text: '语言不当（歧视/脏话）', short: '语言不当', weight: 11 }
+  ];
+
+  var CAMPAIGNS = [];
+  var ADS = [];
+  var ADMAP = {};
+  var CAMPMAP = {};
+
+  function rejectionRate(acc, d) {
+    var base = 0.09;
+    if (acc.id === 'act_2041187700331') base = 0.27;
+    else if (acc.id === 'act_1422336677889') base = 0.17;
+    else if (acc.name.indexOf('测新') >= 0) base = 0.06;
+    else base = 0.10;
+    if (d <= 2 && (acc.id === 'act_2041187700331' || acc.id === 'act_1422336677889')) base *= 1.42;
+    return Math.min(0.48, base);
+  }
+
+  function pickReasons(rng, n) {
+    var pool = REASONS.slice();
+    var out = [];
+    for (var k = 0; k < n && pool.length; k++) {
+      var total = 0;
+      pool.forEach(function (r) { total += r.weight; });
+      var x = rng() * total;
+      var idx = 0;
+      for (var i = 0; i < pool.length; i++) { x -= pool[i].weight; if (x <= 0) { idx = i; break; } }
+      out.push(pool[idx].text);
+      pool.splice(idx, 1);
+    }
+    return out;
+  }
+
+  function buildData() {
+    var seqC = 1, seqA = 1;
+    for (var d = HISTORY_DAYS - 1; d >= 0; d--) {
+      var date = addDays(TODAY0, -d);
+      var dayIdx = HISTORY_DAYS - 1 - d;
+      ACCOUNTS.forEach(function (acc, ai) {
+        if (d === 0 && acc.delayed) return;
+        var rng = mulberry32(1000 + dayIdx * 97 + ai * 13 + 7);
+        var campCount = 1 + Math.floor(rng() * 3);
+        var camps = [];
+        for (var c = 0; c < campCount; c++) {
+          var chour = 8 + Math.floor(rng() * 14);
+          var created = new Date(date);
+          created.setHours(chour, Math.floor(rng() * 60), 0, 0);
+          if (created > NOW) continue;
+          var camp = {
+            id: 'c_' + (seqC++),
+            name: 'N' + (890 + Math.floor(rng() * 15)) + '_' + acc.lang + '_' + (rng() < 0.5 ? '测新' : '主投') + '_' + fmtShort(date).replace('-', '') + '_' + (c + 1),
+            accountId: acc.id,
+            createdAt: created,
+            deleted: rng() < 0.03
+          };
+          CAMPAIGNS.push(camp);
+          camps.push(camp);
+        }
+        if (!camps.length) return;
+        var adCount = 8 + Math.floor(rng() * 6);
+        for (var i = 0; i < adCount; i++) {
+          var camp2 = camps[Math.floor(rng() * camps.length)];
+          var created2 = new Date(camp2.createdAt);
+          created2.setHours(created2.getHours() + Math.floor(rng() * 3));
+          if (created2 > NOW) continue;
+          var matched = rng() > 0.12;
+          var mat = null;
+          if (matched) {
+            var pool = MATERIALS.filter(function (m) { return m.lang === acc.lang; });
+            mat = pool.length && rng() > 0.08 ? pool[Math.floor(rng() * pool.length)] : MATERIALS[Math.floor(rng() * MATERIALS.length)];
+          }
+          var ad = {
+            id: 'ad_' + (seqA++),
+            name: mat ? (mat.name + '_v' + (i + 1) + (rng() < 0.5 ? '_A' : '_B')) : ('未命名素材_' + acc.lang + '_' + fmtShort(date).replace('-', '') + '_' + (i + 1)),
+            campaignId: camp2.id,
+            accountId: acc.id,
+            createdAt: created2,
+            deleted: rng() < 0.05,
+            materialId: mat ? mat.id : null,
+            reasons: [],
+            firstRejectAt: null
+          };
+          if (rng() < rejectionRate(acc, d)) {
+            var t = new Date(created2.getTime());
+            t.setHours(t.getHours() + 1 + Math.floor(rng() * 6));
+            if (t > NOW) t = new Date(NOW);
+            ad.firstRejectAt = t;
+            ad.reasons = pickReasons(rng, rng() < 0.32 ? 2 : 1);
+          }
+          ADS.push(ad);
+          ADMAP[ad.id] = ad;
+        }
+      });
+    }
+    CAMPAIGNS.forEach(function (c) { CAMPMAP[c.id] = c; });
+  }
+
+  /* ---------- 状态 ---------- */
+  var PAGE = 'overview';
+  var ROLE = 'admin';
+  var PRESET = 'yesterday';
+  var TREND_MODE = 'chart';
+  var CUSTOM = { from: fmtDate(addDays(TODAY0, -6)), to: fmtDate(TODAY0) };
+  var FILTERS = { team: '', buyer: '', editor: '', project: '', lang: '', drama: '', reason: '', attr: '', account: '' };
+  var SEARCH = { account: '', material: '', detail: '', unattr: '' };
+  var SORT = { account: 'rate_desc', material: 'reject_desc' };
+  var PG = { detail: 1, unattr: 1 };
+  var PAGE_SIZE = 20;
+  var DRAWER_RETURN = null;
+  var THRESH = { rate: 20, unattr: 10, rise: 50, overrides: {} };
+
+  var PAGES = {
+    overview: { eyebrow: 'OVERVIEW', title: '拒审态势', sub: 'Meta 渠道基建与拒审概览' },
+    accounts: { eyebrow: 'ACCOUNTS', title: '账户与投手', sub: '按账户聚合基建量与拒审表现' },
+    materials: { eyebrow: 'MATERIALS', title: '素材与剪辑', sub: '拒审素材与剪辑人归因' },
+    detail: { eyebrow: 'REJECTED ADS', title: '拒审明细', sub: '以广告为单位的拒审记录' },
+    unattributed: { eyebrow: 'UNATTRIBUTED', title: '未归因池', sub: '广告名称无法匹配素材归属' }
+  };
+
+  /* ---------- 范围与筛选 ---------- */
+  function getRange() {
+    var start, end;
+    if (PRESET === 'today') { start = TODAY0; end = NOW; }
+    else if (PRESET === 'yesterday') { start = addDays(TODAY0, -1); end = TODAY0; }
+    else if (PRESET === '7d') { start = addDays(TODAY0, -6); end = NOW; }
+    else if (PRESET === '30d') { start = addDays(TODAY0, -29); end = NOW; }
+    else {
+      var a = CUSTOM.from ? new Date(CUSTOM.from + 'T00:00:00') : addDays(TODAY0, -6);
+      var b = CUSTOM.to ? new Date(CUSTOM.to + 'T00:00:00') : TODAY0;
+      if (isNaN(a.getTime())) a = addDays(TODAY0, -6);
+      if (isNaN(b.getTime())) b = TODAY0;
+      if (a > b) { var tmp = a; a = b; b = tmp; }
+      start = startOfDay(a);
+      end = b >= TODAY0 ? new Date(NOW) : addDays(startOfDay(b), 1);
+    }
+    return { start: start, end: end };
+  }
+  function prevRange(r) {
+    var dur = r.end - r.start;
+    return { start: new Date(r.start - dur), end: new Date(r.start) };
+  }
+  function isSingleDay(r) { return (r.end - r.start) <= 24 * 3600 * 1000; }
+  function rangeText(r) {
+    if (isSingleDay(r)) return fmtDate(r.start) + ' 全天';
+    return fmtDate(r.start) + ' ~ ' + fmtDate(new Date(r.end - 1));
+  }
+
+  function roleOk(ad) {
+    var acc = ACCMAP[ad.accountId];
+    var m = ad.materialId ? MATMAP[ad.materialId] : null;
+    if (ROLE === 'admin') return true;
+    if (ROLE === 'buyer') return acc.buyer === ROLES.buyer.buyerName;
+    if (ROLE === 'editor') return !!m && m.editor === ROLES.editor.editorName;
+    if (ROLE === 'lead') return acc.team === ROLES.lead.team || (!!m && m.editorTeam === ROLES.lead.editorTeam);
+    return false;
+  }
+  function matchBase(ad) {
+    var acc = ACCMAP[ad.accountId];
+    var m = ad.materialId ? MATMAP[ad.materialId] : null;
+    if (FILTERS.account && ad.accountId !== FILTERS.account) return false;
+    if (FILTERS.team && acc.team !== FILTERS.team) return false;
+    if (FILTERS.buyer && acc.buyer !== FILTERS.buyer) return false;
+    if (FILTERS.editor && (!m || m.editor !== FILTERS.editor)) return false;
+    if (FILTERS.project && (!m || m.project !== FILTERS.project)) return false;
+    if (FILTERS.lang && (!m || m.lang !== FILTERS.lang)) return false;
+    if (FILTERS.drama && (!m || m.drama !== FILTERS.drama)) return false;
+    if (FILTERS.attr === 'attributed' && !m) return false;
+    if (FILTERS.attr === 'unattributed' && m) return false;
+    return true;
+  }
+  function baseAds() { return ADS.filter(roleOk).filter(matchBase); }
+  function visibleAccounts() {
+    return ACCOUNTS.filter(function (a) {
+      if (ROLE === 'admin') return true;
+      if (ROLE === 'buyer') return a.buyer === ROLES.buyer.buyerName;
+      if (ROLE === 'lead') return a.team === ROLES.lead.team || ADS.some(function (x) { return x.accountId === a.id && roleOk(x); });
+      if (ROLE === 'editor') return ADS.some(function (x) { return x.accountId === a.id && roleOk(x); });
+      return false;
+    });
+  }
+  function visibleMaterials() {
+    if (ROLE === 'admin') return MATERIALS.slice();
+    if (ROLE === 'lead') return MATERIALS.filter(function (m) { return m.editorTeam === ROLES.lead.editorTeam; });
+    if (ROLE === 'editor') return MATERIALS.filter(function (m) { return m.editor === ROLES.editor.editorName; });
+    if (ROLE === 'buyer') {
+      var own = {};
+      ADS.forEach(function (a) {
+        if (a.materialId && ACCMAP[a.accountId].buyer === ROLES.buyer.buyerName) own[a.materialId] = 1;
+      });
+      return MATERIALS.filter(function (m) { return own[m.id]; });
+    }
+    return MATERIALS.slice();
+  }
+
+  /* ---------- 统计 ---------- */
+  function statsFor(range, applyReason) {
+    var base = baseAds();
+    var ads = base.filter(function (a) { return inRange(a.createdAt, range); });
+    var rej = base.filter(function (a) { return a.firstRejectAt && inRange(a.firstRejectAt, range); });
+    if (applyReason && FILTERS.reason) rej = rej.filter(function (a) { return a.reasons.indexOf(FILTERS.reason) >= 0; });
+    var cset = {};
+    ads.forEach(function (a) { cset[a.campaignId] = 1; });
+    var camps = CAMPAIGNS.filter(function (c) { return cset[c.id] && inRange(c.createdAt, range); });
+    var rset = {};
+    rej.forEach(function (a) { if (a.campaignId) rset[a.campaignId] = 1; });
+    var attributed = rej.filter(function (a) { return !!a.materialId; }).length;
+    return {
+      campaigns: camps.length,
+      ads: ads.length,
+      rejects: rej.length,
+      rejectedCampaigns: Object.keys(rset).length,
+      attributed: attributed,
+      rate: ads.length ? rej.length / ads.length : 0,
+      coverage: rej.length ? attributed / rej.length : 0
+    };
+  }
+
+  function makeBuckets(range) {
+    var buckets = [];
+    if (isSingleDay(range)) {
+      for (var h = 0; h < 24; h++) {
+        var s = new Date(startOfDay(range.start)); s.setHours(h, 0, 0, 0);
+        if (s >= range.end) break;
+        var e = new Date(s); e.setHours(h + 1, 0, 0, 0);
+        if (e > range.end) e = new Date(range.end);
+        buckets.push({ start: s, end: e, label: pad(h) + ':00' });
+      }
+    } else {
+      for (var cur = startOfDay(range.start); cur < range.end; cur = addDays(cur, 1)) {
+        var e2 = addDays(cur, 1);
+        if (e2 > range.end) e2 = new Date(range.end);
+        buckets.push({ start: new Date(cur), end: e2, label: fmtShort(cur) });
+      }
+    }
+    return buckets;
+  }
+
+  function buildSeries(range) {
+    var buckets = makeBuckets(range);
+    var base = baseAds();
+    var out = { labels: [], campaigns: [], ads: [], rejects: [], rates: [], coverage: [] };
+    buckets.forEach(function (b) {
+      var ads = base.filter(function (a) { return inRange(a.createdAt, b); });
+      var rej = base.filter(function (a) { return a.firstRejectAt && inRange(a.firstRejectAt, b); });
+      if (FILTERS.reason) rej = rej.filter(function (a) { return a.reasons.indexOf(FILTERS.reason) >= 0; });
+      var cset = {};
+      ads.forEach(function (a) { cset[a.campaignId] = 1; });
+      var camps = CAMPAIGNS.filter(function (c) { return cset[c.id] && inRange(c.createdAt, b); });
+      var attributed = rej.filter(function (a) { return !!a.materialId; }).length;
+      out.labels.push(b.label);
+      out.campaigns.push(camps.length);
+      out.ads.push(ads.length);
+      out.rejects.push(rej.length);
+      out.rates.push(ads.length ? rej.length / ads.length : 0);
+      out.coverage.push(rej.length ? attributed / rej.length : 0);
+    });
+    return out;
+  }
+
+  /* ---------- 渲染：全局框架 ---------- */
+  function syncFilterOptions() {
+    var accs = visibleAccounts();
+    var mats = visibleMaterials();
+    var teams = {}; var buyers = {}; var editors = {}; var projects = {}; var langs = {}; var dramas = {};
+    accs.forEach(function (a) { teams[a.team] = 1; buyers[a.buyer] = 1; });
+    mats.forEach(function (m) { editors[m.editor] = 1; projects[m.project] = 1; langs[m.lang] = 1; dramas[m.drama] = 1; });
+    fillSelect('fTeam', Object.keys(teams).sort(), '全部团队', 'team');
+    fillSelect('fBuyer', Object.keys(buyers).sort(), '全部投手', 'buyer');
+    fillSelect('fEditor', Object.keys(editors).sort(), '全部剪辑', 'editor');
+    fillSelect('fProject', Object.keys(projects).sort(), '全部项目', 'project');
+    fillSelect('fLang', Object.keys(langs).sort(), '全部语种', 'lang');
+    fillSelect('fDrama', Object.keys(dramas).sort(), '全部短剧', 'drama');
+    fillSelect('fReason', REASONS.map(function (r) { return r.text; }), '全部原因', 'reason');
+    fillSelect('fAttr', [], '', 'attr');
+    var attr = document.getElementById('fAttr');
+    attr.innerHTML = '<option value="">全部归因</option><option value="attributed">已归因</option><option value="unattributed">未归因</option>';
+    attr.value = FILTERS.attr;
+  }
+  function fillSelect(id, list, placeholder, key) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var cur = FILTERS[key];
+    var html = '<option value="">' + placeholder + '</option>';
+    list.forEach(function (v) { html += '<option value="' + esc(v) + '">' + esc(v) + '</option>'; });
+    el.innerHTML = html;
+    if (cur && list.indexOf(cur) < 0) { FILTERS[key] = ''; el.value = ''; }
+    else el.value = cur || '';
+  }
+
+  function renderChrome() {
+    var meta = PAGES[PAGE];
+    document.getElementById('pageEyebrow').textContent = meta.eyebrow;
+    document.getElementById('pageTitle').textContent = meta.title;
+    document.getElementById('pageSub').textContent = meta.sub;
+    var navBtns = document.querySelectorAll('.nav-item');
+    for (var i = 0; i < navBtns.length; i++) navBtns[i].classList.toggle('active', navBtns[i].getAttribute('data-page') === PAGE);
+    var containers = document.querySelectorAll('.page-container');
+    for (var j = 0; j < containers.length; j++) containers[j].classList.toggle('active', containers[j].id === 'page-' + PAGE);
+    document.getElementById('roleSelect').value = ROLE;
+    var role = ROLES[ROLE];
+    var accs = visibleAccounts();
+    var mats = visibleMaterials();
+    var scope = document.getElementById('scopeNote');
+    if (ROLE === 'admin') scope.innerHTML = '<b>全量</b> · ' + accs.length + ' 个账户<br>' + mats.length + ' 个素材可见';
+    else if (ROLE === 'lead') scope.innerHTML = '<b>' + esc(role.team) + '</b><br>账户 + 本组剪辑素材';
+    else if (ROLE === 'buyer') scope.innerHTML = '<b>' + esc(role.buyerName) + '</b> 名下账户<br>' + accs.length + ' 个账户可见';
+    else scope.innerHTML = '<b>' + esc(role.editorName) + '</b> 的素材<br>' + mats.length + ' 个素材可见';
+    var upd = new Date(NOW); upd.setMinutes(0, 0, 0);
+    document.getElementById('freshTime').textContent = fmtDayTime(upd);
+    var delayed = accs.filter(function (a) { return a.delayed; });
+    var fresh = document.getElementById('freshBox');
+    fresh.classList.toggle('warn', delayed.length > 0);
+    document.getElementById('freshState').textContent = delayed.length ? delayed.length + ' 个账户延迟' : '正常';
+    var r = getRange();
+    document.getElementById('rangeChip').textContent = rangeText(r);
+    var includesToday = r.start <= TODAY0 && r.end > TODAY0;
+    var chip = document.getElementById('dataStateChip');
+    if (includesToday) { chip.className = 'chip info'; chip.innerHTML = '<span class="ico">●</span>今日进行中'; }
+    else { chip.className = 'chip good'; chip.innerHTML = '<span class="ico">●</span>数据已定型'; }
+    var segs = document.querySelectorAll('#dateSeg button');
+    for (var k = 0; k < segs.length; k++) segs[k].classList.toggle('active', segs[k].getAttribute('data-preset') === PRESET);
+    document.getElementById('customRange').hidden = PRESET !== 'custom';
+    var unattr = baseAds().filter(function (a) { return a.firstRejectAt && inRange(a.firstRejectAt, r) && !a.materialId; }).length;
+    document.getElementById('navUnattrCount').textContent = unattr;
+    document.getElementById('navUnattrCount').hidden = unattr === 0;
+  }
+
+  /* ---------- 渲染：总览 ---------- */
+  function deltaInfo(cur, prev, isRate, goodUp) {
+    if (!prev) return { cls: 'none', text: '无可比数据' };
+    var diff;
+    if (isRate) return { cls: (cur - prev) === 0 ? 'none' : ((cur > prev) === goodUp ? 'good' : 'bad'), text: (cur - prev >= 0 ? '+' : '') + ((cur - prev) * 100).toFixed(1) + 'pp 较上期' };
+    diff = (cur - prev) / prev;
+    if (!isFinite(diff)) return { cls: 'none', text: '无可比数据' };
+    var up = diff > 0;
+    return {
+      cls: Math.abs(diff) < 0.0005 ? 'none' : ((up === goodUp) ? 'good' : 'bad'),
+      text: (up ? '↑ ' : '↓ ') + Math.abs(diff * 100).toFixed(1) + '% 较上期'
+    };
+  }
+  function renderKpis(range, series) {
+    var cur = statsFor(range, true);
+    var prev = statsFor(prevRange(range), true);
+    var defs = [
+      { label: '广告计划基建数', mono: 'BUILD / CAMPAIGN', value: fmt(cur.campaigns), unit: '个', cur: cur.campaigns, prev: prev.campaigns, isRate: false, goodUp: true, spark: series.campaigns, color: BLUE },
+      { label: '广告基建数', mono: 'BUILD / AD', value: fmt(cur.ads), unit: '条', cur: cur.ads, prev: prev.ads, isRate: false, goodUp: true, spark: series.ads, color: BLUE },
+      { label: '广告拒审次数', mono: 'REJECTED / ADS', value: fmt(cur.rejects), unit: '次', cur: cur.rejects, prev: prev.rejects, isRate: false, goodUp: false, spark: series.rejects, color: RED },
+      { label: '拒审广告率', mono: 'REJECT RATE', value: pct(cur.rate), unit: '', cur: cur.rate, prev: prev.rate, isRate: true, goodUp: false, spark: series.rates, color: RED },
+      { label: '有拒审 Campaign', mono: 'REJECTED / CAMPAIGN', value: fmt(cur.rejectedCampaigns), unit: '个', cur: cur.rejectedCampaigns, prev: prev.rejectedCampaigns, isRate: false, goodUp: false, spark: null, color: RED },
+      { label: '归因覆盖率', mono: 'ATTRIBUTION', value: pct(cur.coverage), unit: '', cur: cur.coverage, prev: prev.coverage, isRate: true, goodUp: true, spark: series.coverage, color: BLUE }
+    ];
+    var html = '';
+    defs.forEach(function (d, i) {
+      var dd = deltaInfo(d.cur, d.prev, d.isRate, d.goodUp);
+      html += '<div class="kpi" data-kpi="' + i + '">' +
+        '<div class="kpi-label"><span class="mono">' + d.mono + '</span><span>' + d.label + '</span></div>' +
+        '<div class="kpi-value">' + d.value + (d.unit ? '<small>' + d.unit + '</small>' : '') + '</div>' +
+        '<div class="kpi-foot"><span class="delta ' + dd.cls + '">' + esc(dd.text) + '</span><span class="spark" data-spark="' + i + '"></span></div>' +
+        '</div>';
+    });
+    var grid = document.getElementById('kpiGrid');
+    grid.innerHTML = html;
+    var sparks = grid.querySelectorAll('[data-spark]');
+    for (var k = 0; k < sparks.length; k++) {
+      var def = defs[parseInt(sparks[k].getAttribute('data-spark'), 10)];
+      if (def.spark) drawSpark(sparks[k], def.spark.slice(-12), def.color);
+    }
+  }
+  function drawSpark(el, values, color) {
+    var w = el.clientWidth || 56, h = 30, pad = 2;
+    var max = Math.max.apply(null, values.concat([0.0001]));
+    var min = Math.min.apply(null, values.concat([0]));
+    var span = max - min || 1;
+    var pts = values.map(function (v, i) {
+      var x = pad + (w - pad * 2) * (values.length === 1 ? 0.5 : i / (values.length - 1));
+      var y = h - pad - ((v - min) / span) * (h - pad * 2);
+      return [x, y];
+    });
+    var line = pts.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
+    var last = pts[pts.length - 1];
+    el.innerHTML = '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true">' +
+      '<polyline points="' + line + '" fill="none" stroke="#c3c2b7" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"></polyline>' +
+      '<circle cx="' + last[0].toFixed(1) + '" cy="' + last[1].toFixed(1) + '" r="2.5" fill="' + color + '" stroke="#fcfcfb" stroke-width="2"></circle>' +
+      '</svg>';
+  }
+
+  function renderOverview() {
+    var range = getRange();
+    var series = buildSeries(range);
+    renderNotices(range);
+    renderKpis(range, series);
+    renderTrends(range, series);
+    renderReasons(range);
+    renderAnomalies(range);
+    var title = document.getElementById('trendTitle');
+    var hint = document.getElementById('trendHint');
+    if (isSingleDay(range)) { title.textContent = '分时趋势'; hint.textContent = '按小时聚合 · ' + fmtDate(range.start); }
+    else { title.textContent = '日趋势'; hint.textContent = '按自然日聚合 · ' + rangeText(range); }
+    var th = threshFor(null);
+    document.getElementById('anomalyHint').textContent = '固定阈值 ' + th.rate + '% / 未归因 ' + th.unattr + ' / 环比 +' + th.rise + '%';
+    document.getElementById('btnThreshold').hidden = ROLE !== 'admin';
+  }
+  function renderNotices(range) {
+    var items = [];
+    var includesToday = range.start <= TODAY0 && range.end > TODAY0;
+    if (includesToday) items.push({ cls: 'info', ico: '●', text: '今日数据进行中，截至 ' + pad(NOW.getHours()) + ':' + pad(NOW.getMinutes()) });
+    if (range.start < addDays(TODAY0, -LAUNCH_GAP)) items.push({ cls: 'warn', ico: '≈', text: '含历史回补数据，首次拒审日期为近似值' });
+    var delayed = visibleAccounts().filter(function (a) { return a.delayed; });
+    if (delayed.length) items.push({ cls: 'warn', ico: '!', text: delayed.length + ' 个账户数据延迟，已使用上次成功采集结果' });
+    if (!items.length) items.push({ cls: 'good', ico: '✓', text: '数据完整，无延迟账户' });
+    document.getElementById('notices').innerHTML = items.map(function (i) {
+      return '<span class="chip ' + i.cls + '"><span class="ico">' + i.ico + '</span>' + esc(i.text) + '</span>';
+    }).join('');
+  }
+
+  function renderTrends(range, series) {
+    var grid = document.getElementById('trendGrid');
+    var table = document.getElementById('trendTable');
+    grid.hidden = TREND_MODE !== 'chart';
+    table.hidden = TREND_MODE !== 'table';
+    var defs = [
+      { key: 'campaigns', eyebrow: 'BUILD / CAMPAIGN', title: '广告计划基建数', color: BLUE, unit: ' 个' },
+      { key: 'ads', eyebrow: 'BUILD / AD', title: '广告基建数', color: BLUE, unit: ' 条' },
+      { key: 'rejects', eyebrow: 'REJECTED / ADS', title: '广告拒审次数', color: RED, unit: ' 次' }
+    ];
+    var gg = '';
+    defs.forEach(function (d) {
+      var vals = series[d.key];
+      gg += '<div class="mini"><div class="mini-head"><div><div class="eyebrow">' + d.eyebrow + '</div><div class="mini-title">' + d.title + '</div></div><div class="mini-value">' + fmt(vals[vals.length - 1] || 0) + '</div></div><div class="chart" id="chart-' + d.key + '"></div></div>';
+    });
+    grid.innerHTML = gg;
+    defs.forEach(function (d) {
+      drawLineChart(document.getElementById('chart-' + d.key), series[d.key], series.labels, d.color, d.unit);
+    });
+    var th = '<table><thead><tr><th>时段</th><th class="ta-r">计划基建</th><th class="ta-r">广告基建</th><th class="ta-r">拒审次数</th><th class="ta-r">拒审率</th></tr></thead><tbody>';
+    for (var i = series.labels.length - 1; i >= 0; i--) {
+      th += '<tr><td>' + esc(series.labels[i]) + '</td><td class="ta-r">' + fmt(series.campaigns[i]) + '</td><td class="ta-r">' + fmt(series.ads[i]) + '</td><td class="ta-r">' + fmt(series.rejects[i]) + '</td><td class="ta-r">' + pct(series.rates[i]) + '</td></tr>';
+    }
+    th += '</tbody></table>';
+    table.innerHTML = th;
+  }
+
+  function niceMax(v) {
+    if (!v || v <= 0) return 1;
+    var p = Math.pow(10, Math.floor(Math.log(v) / Math.LN10));
+    var n = v / p;
+    var m = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10;
+    return m * p;
+  }
+  function drawLineChart(el, values, labels, color, unit) {
+    if (!el) return;
+    if (!values.length) { el.innerHTML = '<div class="anomaly-empty">当前范围没有数据</div>'; return; }
+    var w = Math.max(el.clientWidth || 0, 240), h = 128;
+    var padL = 32, padR = 44, padT = 12, padB = 24;
+    var plotW = w - padL - padR, plotH = h - padT - padB;
+    var max = niceMax(Math.max.apply(null, values.concat([0])));
+    var n = values.length;
+    var stepX = n > 1 ? plotW / (n - 1) : 0;
+    function x(i) { return padL + stepX * i; }
+    function y(v) { return padT + plotH - (v / max) * plotH; }
+    var linePts = values.map(function (v, i) { return x(i).toFixed(1) + ',' + y(v).toFixed(1); }).join(' ');
+    var areaPts = 'M' + x(0).toFixed(1) + ',' + (padT + plotH) + ' L' + linePts.replace(/ /g, ' L') + ' L' + x(n - 1).toFixed(1) + ',' + (padT + plotH) + ' Z';
+    var grid = '';
+    [0, 0.5, 1].forEach(function (t) {
+      var gy = padT + plotH - t * plotH;
+      grid += '<line x1="' + padL + '" y1="' + gy.toFixed(1) + '" x2="' + (w - padR) + '" y2="' + gy.toFixed(1) + '" stroke="#e1e0d9" stroke-width="1"></line>';
+      grid += '<text x="' + (padL - 6) + '" y="' + (gy + 3.5).toFixed(1) + '" text-anchor="end" font-size="9" fill="#898781">' + fmt(Math.round(max * t)) + '</text>';
+    });
+    var xlab = '';
+    var step = Math.max(1, Math.ceil(n / 5));
+    for (var i = 0; i < n; i += step) {
+      xlab += '<text x="' + x(i).toFixed(1) + '" y="' + (h - 6) + '" text-anchor="middle" font-size="9" fill="#898781">' + esc(labels[i]) + '</text>';
+    }
+    var lastVal = values[n - 1] || 0;
+    var endLabel = '<text x="' + (x(n - 1) + 7).toFixed(1) + '" y="' + (y(lastVal) + 3.5).toFixed(1) + '" font-size="10" fill="#565550">' + fmt(lastVal) + '</text>';
+    var dots = n === 1 ? '<circle cx="' + x(0) + '" cy="' + y(values[0]) + '" r="3.5" fill="' + color + '" stroke="#fcfcfb" stroke-width="2"></circle>' : '';
+    var svg = '<svg width="' + w + '" height="' + h + '" role="img" aria-label="趋势图">' +
+      grid +
+      '<path d="' + areaPts + '" fill="' + color + '" opacity="0.10"></path>' +
+      '<polyline points="' + linePts + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>' +
+      '<circle cx="' + x(n - 1).toFixed(1) + '" cy="' + y(lastVal).toFixed(1) + '" r="3.5" fill="' + color + '" stroke="#fcfcfb" stroke-width="2"></circle>' +
+      dots + endLabel + xlab +
+      '<g class="cross" style="display:none"><line y1="' + padT + '" y2="' + (padT + plotH) + '" stroke="#c3c2b7" stroke-width="1"></line><circle r="3.5" fill="' + color + '" stroke="#fcfcfb" stroke-width="2"></circle></g>' +
+      '<rect class="hit" x="' + padL + '" y="' + padT + '" width="' + plotW + '" height="' + plotH + '" fill="transparent"></rect>' +
+      '</svg>';
+    el.innerHTML = svg;
+    var svgEl = el.querySelector('svg');
+    var cross = svgEl.querySelector('.cross');
+    var hit = svgEl.querySelector('.hit');
+    hit.addEventListener('mousemove', function (ev) {
+      var rect = svgEl.getBoundingClientRect();
+      var px = ev.clientX - rect.left;
+      var idx = clamp(Math.round((px - padL) / (stepX || 1)), 0, n - 1);
+      var cx = x(idx), cy = y(values[idx]);
+      cross.style.display = '';
+      cross.querySelector('line').setAttribute('x1', cx); cross.querySelector('line').setAttribute('x2', cx);
+      var circ = cross.querySelector('circle'); circ.setAttribute('cx', cx); circ.setAttribute('cy', cy);
+      showTip(fmt(values[idx]) + unit + ' · ' + labels[idx], ev.clientX, ev.clientY);
+    });
+    hit.addEventListener('mouseleave', function () { cross.style.display = 'none'; hideTip(); });
+  }
+
+  function renderReasons(range) {
+    var rej = baseAds().filter(function (a) { return a.firstRejectAt && inRange(a.firstRejectAt, range); });
+    if (FILTERS.reason) rej = rej.filter(function (a) { return a.reasons.indexOf(FILTERS.reason) >= 0; });
+    var counts = {};
+    rej.forEach(function (a) {
+      if (!a.reasons.length) return;
+      var r = a.reasons[0];
+      counts[r] = (counts[r] || 0) + 1;
+    });
+    var rows = Object.keys(counts).map(function (k) { return { text: k, count: counts[k] }; }).sort(function (a, b) { return b.count - a.count; });
+    var total = rows.reduce(function (s, r) { return s + r.count; }, 0);
+    document.getElementById('reasonTotal').textContent = total ? '共 ' + total + ' 条 · ' + rows.length + ' 类原因' : '暂无拒审';
+    var band = document.getElementById('reasonBand');
+    var rank = document.getElementById('reasonRank');
+    if (!total) {
+      band.innerHTML = '';
+      rank.innerHTML = '<div class="anomaly-empty">当前范围没有拒审记录</div>';
+      return;
+    }
+    var max = rows[0].count;
+    var bh = '', rh = '';
+    rows.forEach(function (r, i) {
+      var share = r.count / total;
+      var shortName = (REASONS.filter(function (x) { return x.text === r.text; })[0] || {}).short || r.text;
+      bh += '<div class="band-seg" style="flex:' + r.count + ' 1 0" data-tip="' + esc(r.text + ' · ' + r.count + ' 条 · ' + pct(share)) + '">' + (share >= 0.09 ? esc(shortName) : '') + '</div>';
+      rh += '<div class="rank-row">' +
+        '<span class="rank-idx">' + pad(i + 1) + '</span>' +
+        '<span class="rank-name" title="' + esc(r.text) + '">' + esc(r.text) + (i === 0 ? '<span class="tag-main">主因</span>' : '') + '</span>' +
+        '<span class="rank-track"><span class="rank-fill" style="width:' + Math.max(2, r.count / max * 100) + '%"></span></span>' +
+        '<span class="rank-num">' + fmt(r.count) + '</span>' +
+        '<span class="rank-pct">' + pct(share) + '</span>' +
+        '</div>';
+    });
+    band.innerHTML = bh;
+    rank.innerHTML = rh;
+  }
+
+  function threshFor(team) {
+    var base = { rate: THRESH.rate, unattr: THRESH.unattr, rise: THRESH.rise };
+    var o = team && THRESH.overrides[team];
+    if (o) {
+      if (o.rate != null) base.rate = o.rate;
+      if (o.unattr != null) base.unattr = o.unattr;
+      if (o.rise != null) base.rise = o.rise;
+    }
+    return base;
+  }
+  function renderAnomalies(range) {
+    var day = isSingleDay(range) ? { start: startOfDay(range.start), end: addDays(startOfDay(range.start), 1) } : { start: startOfDay(addDays(TODAY0, -1)), end: TODAY0 };
+    if (!isSingleDay(range) && range.end < TODAY0) day = { start: startOfDay(addDays(range.end, -1)), end: startOfDay(range.end) };
+    var prev7 = { start: addDays(day.start, -7), end: day.start };
+    var base = baseAds();
+    function dayStats(accId, r) {
+      var ads = base.filter(function (a) { return (!accId || a.accountId === accId) && inRange(a.createdAt, r); });
+      var rej = base.filter(function (a) { return (!accId || a.accountId === accId) && a.firstRejectAt && inRange(a.firstRejectAt, r); });
+      if (FILTERS.reason) rej = rej.filter(function (a) { return a.reasons.indexOf(FILTERS.reason) >= 0; });
+      return { ads: ads.length, rejects: rej.length, rate: ads.length ? rej.length / ads.length : 0 };
+    }
+    var flags = [];
+    var accs = visibleAccounts();
+    var teamAgg = {};
+    accs.forEach(function (a) {
+      var th = threshFor(a.team);
+      var cur = dayStats(a.id, day), prev = dayStats(a.id, prev7);
+      var prevRate = prev.ads ? prev.rejects / prev.ads / 7 : 0;
+      if (cur.rate > th.rate / 100 && cur.rejects > 0) flags.push({ kind: 'crit', rule: '阈值', title: a.name + ' · ' + a.buyer, detail: '拒审率 ' + pct(cur.rate) + '，超过 ' + th.rate + '% 阈值（' + cur.rejects + '/' + cur.ads + '）', type: 'account', id: a.id, score: cur.rate });
+      else if (prevRate > 0 && cur.rate > prevRate * (1 + th.rise / 100) && cur.rejects >= 2) flags.push({ kind: 'warn', rule: '环比', title: a.name + ' · ' + a.buyer, detail: '拒审率 ' + pct(cur.rate) + '，较近 7 日均值 ' + pct(prevRate) + ' 上涨 ' + Math.round((cur.rate / prevRate - 1) * 100) + '%（阈值 +' + th.rise + '%）', type: 'account', id: a.id, score: cur.rate });
+    });
+    TEAMS.forEach(function (t) {
+      var ids = accs.filter(function (a) { return a.team === t; }).map(function (a) { return a.id; });
+      if (!ids.length) return;
+      var cur = { ads: 0, rejects: 0 }, prev = { ads: 0, rejects: 0 };
+      ids.forEach(function (id) { var c = dayStats(id, day), p = dayStats(id, prev7); cur.ads += c.ads; cur.rejects += c.rejects; prev.ads += p.ads; prev.rejects += p.rejects; });
+      var rate = cur.ads ? cur.rejects / cur.ads : 0;
+      var prate = prev.ads ? prev.rejects / prev.ads / 7 : 0;
+      var th = threshFor(t);
+      if (rate > th.rate / 100 && cur.rejects > 0) flags.push({ kind: 'crit', rule: '阈值', title: t, detail: '团队拒审率 ' + pct(rate) + '，超过 ' + th.rate + '% 阈值（' + cur.rejects + '/' + cur.ads + '）', type: 'team', id: t, score: rate });
+      else if (prate > 0 && rate > prate * (1 + th.rise / 100) && cur.rejects >= 2) flags.push({ kind: 'warn', rule: '环比', title: t, detail: '团队拒审率 ' + pct(rate) + '，较近 7 日均值 ' + pct(prate) + ' 上涨 ' + Math.round((rate / prate - 1) * 100) + '%（阈值 +' + th.rise + '%）', type: 'team', id: t, score: rate });
+    });
+    var mats = visibleMaterials();
+    var thGlobal = threshFor(null);
+    mats.forEach(function (m) {
+      var curAds = base.filter(function (a) { return a.materialId === m.id && inRange(a.createdAt, day); });
+      var curRej = base.filter(function (a) { return a.materialId === m.id && a.firstRejectAt && inRange(a.firstRejectAt, day); });
+      var prevRej = base.filter(function (a) { return a.materialId === m.id && a.firstRejectAt && inRange(a.firstRejectAt, prev7); });
+      var prevAvg = prevRej.length / 7;
+      if (prevAvg > 0 && curRej.length > Math.max(2, prevAvg * (1 + thGlobal.rise / 100))) {
+        flags.push({ kind: 'warn', rule: '环比', title: m.name.split('_').slice(0, 6).join('_'), detail: '当日拒审 ' + curRej.length + ' 条，较近 7 日均值 ' + prevAvg.toFixed(1) + ' 条上涨 ' + Math.round((curRej.length / prevAvg - 1) * 100) + '%', type: 'material', id: m.id, score: curRej.length / Math.max(1, curAds.length) });
+      }
+    });
+    var unattrToday = base.filter(function (a) { return a.firstRejectAt && inRange(a.firstRejectAt, day) && !a.materialId; });
+    if (FILTERS.reason) unattrToday = unattrToday.filter(function (a) { return a.reasons.indexOf(FILTERS.reason) >= 0; });
+    if (unattrToday.length > thGlobal.unattr) {
+      flags.push({ kind: 'crit', rule: '阈值', title: '未归因池', detail: '当日未归因拒审 ' + unattrToday.length + ' 条，超过 ' + thGlobal.unattr + ' 条阈值', type: 'unattr', id: '', score: 1 });
+    }
+    TEAMS.forEach(function (t) {
+      var th = threshFor(t);
+      var ids = visibleAccounts().filter(function (a) { return a.team === t; }).map(function (a) { return a.id; });
+      var n = unattrToday.filter(function (a) { return ids.indexOf(a.accountId) >= 0; }).length;
+      if (n > th.unattr) flags.push({ kind: 'crit', rule: '阈值', title: t + ' · 未归因', detail: '当日未归因拒审 ' + n + ' 条，超过团队阈值 ' + th.unattr + ' 条', type: 'unattr-team', id: t, score: 1 });
+    });
+    flags.sort(function (a, b) { return (a.kind === 'crit' ? 0 : 1) - (b.kind === 'crit' ? 0 : 1) || b.score - a.score; });
+    flags = flags.slice(0, 6);
+    var list = document.getElementById('anomalyList');
+    document.getElementById('anomalyCount').textContent = flags.length ? flags.length + ' 项' : '0';
+    if (!flags.length) { list.innerHTML = '<div class="anomaly-empty">本期没有触发固定阈值或环比突增。</div>'; return; }
+    list.innerHTML = flags.map(function (f) {
+      return '<button class="anomaly' + (f.kind === 'warn' ? ' rise' : '') + '" data-anom="' + esc(f.type + '|' + f.id) + '">' +
+        '<div class="anomaly-top"><span class="sev ' + (f.kind === 'crit' ? 'crit' : 'warn') + '"><span class="sev-ico">' + (f.kind === 'crit' ? '!' : '↑') + '</span>' + f.rule + '</span><span class="anomaly-title">' + esc(f.title) + '</span></div>' +
+        '<div class="anomaly-detail">' + esc(f.detail) + '</div></button>';
+    }).join('');
+  }
+
+  /* ---------- 渲染：账户与投手 ---------- */
+  function renderAccounts() {
+    var range = getRange();
+    var base = baseAds();
+    var accs = visibleAccounts().filter(function (a) {
+      if (FILTERS.account && a.id !== FILTERS.account) return false;
+      if (FILTERS.team && a.team !== FILTERS.team) return false;
+      if (FILTERS.buyer && a.buyer !== FILTERS.buyer) return false;
+      return true;
+    });
+    var q = SEARCH.account.trim();
+    var rows = accs.map(function (a) {
+      var ads = base.filter(function (x) { return x.accountId === a.id && inRange(x.createdAt, range); });
+      var rej = base.filter(function (x) { return x.accountId === a.id && x.firstRejectAt && inRange(x.firstRejectAt, range); });
+      if (FILTERS.reason) rej = rej.filter(function (x) { return x.reasons.indexOf(FILTERS.reason) >= 0; });
+      var rset = {};
+      ads.forEach(function (x) { rset[x.campaignId] = 1; });
+      var camps = CAMPAIGNS.filter(function (c) { return rset[c.id] && inRange(c.createdAt, range); });
+      var attributed = rej.filter(function (x) { return !!x.materialId; }).length;
+      var last7 = [];
+      for (var d = 6; d >= 0; d--) {
+        var ds = startOfDay(addDays(TODAY0, -d));
+        var de = addDays(ds, 1);
+        last7.push(base.filter(function (x) { return x.accountId === a.id && x.firstRejectAt && x.firstRejectAt >= ds && x.firstRejectAt < de; }).length);
+      }
+      return {
+        acc: a,
+        campaigns: camps.length,
+        ads: ads.length,
+        rejects: rej.length,
+        rate: ads.length ? rej.length / ads.length : 0,
+        coverage: rej.length ? attributed / rej.length : 0,
+        spark: last7
+      };
+    }).filter(function (r) {
+      if (!q) return true;
+      return (r.acc.name + ' ' + r.acc.id + ' ' + r.acc.buyer + ' ' + r.acc.team).indexOf(q) >= 0;
+    });
+    if (SORT.account === 'rate_desc') rows.sort(function (a, b) { return b.rate - a.rate || b.rejects - a.rejects; });
+    else if (SORT.account === 'reject_desc') rows.sort(function (a, b) { return b.rejects - a.rejects; });
+    else if (SORT.account === 'ads_desc') rows.sort(function (a, b) { return b.ads - a.ads; });
+    else rows.sort(function (a, b) { return a.acc.name.localeCompare(b.acc.name, 'zh'); });
+    document.getElementById('accountCount').textContent = rows.length + ' 个账户 · ' + rangeText(range);
+    var empty = document.getElementById('accountEmpty');
+    var table = document.querySelector('#page-accounts .table-wrap');
+    if (!rows.length) { empty.hidden = false; table.hidden = true; return; }
+    empty.hidden = true; table.hidden = false;
+    document.getElementById('accountBody').innerHTML = rows.map(function (r) {
+      var status = r.acc.delayed ? '<span class="chip warn"><span class="ico">!</span>延迟 2h</span>' : (r.ads === 0 ? '<span class="chip muted">无数据</span>' : '<span class="chip good"><span class="ico">●</span>正常</span>');
+      var bad = r.rate > 0.2 ? ' bad' : '';
+      return '<tr class="clickable" data-account="' + esc(r.acc.id) + '">' +
+        '<td><div class="cell-stack"><b title="' + esc(r.acc.name) + '">' + esc(r.acc.name) + '</b><span>' + esc(r.acc.id) + '</span></div></td>' +
+        '<td><div class="cell-stack"><b>' + esc(r.acc.team.replace('短剧投放', '')) + '</b><span>' + esc(r.acc.buyer) + '</span></div></td>' +
+        '<td class="ta-r">' + fmt(r.campaigns) + '</td>' +
+        '<td class="ta-r">' + fmt(r.ads) + '</td>' +
+        '<td class="ta-r">' + fmt(r.rejects) + '</td>' +
+        '<td class="ta-r"><span class="meter"><span class="meter-track"><span class="meter-fill' + bad + '" style="width:' + Math.min(100, r.rate * 100 / 0.35) + '%"></span></span><span>' + pct(r.rate) + '</span></span></td>' +
+        '<td class="ta-r">' + pct(r.coverage) + '</td>' +
+        '<td class="spark-cell">' + sparklineSvg(r.spark, r.rate > 0.2 ? RED : BLUE) + '</td>' +
+        '<td>' + status + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+  function sparklineSvg(values, color) {
+    var w = 96, h = 26, pad = 2;
+    var max = Math.max.apply(null, values.concat([0.0001]));
+    var stepX = values.length > 1 ? (w - pad * 2) / (values.length - 1) : 0;
+    var pts = values.map(function (v, i) {
+      var x = pad + stepX * i, y = h - pad - (v / max) * (h - pad * 2);
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    }).join(' ');
+    var lastY = h - pad - ((values[values.length - 1] || 0) / max) * (h - pad * 2);
+    return '<svg width="' + w + '" height="' + h + '" aria-hidden="true"><polyline points="' + pts + '" fill="none" stroke="#c3c2b7" stroke-width="1.5" stroke-linejoin="round"></polyline><circle cx="' + (w - pad) + '" cy="' + lastY.toFixed(1) + '" r="2.5" fill="' + color + '" stroke="#fcfcfb" stroke-width="2"></circle></svg>';
+  }
+
+  /* ---------- 渲染：素材与剪辑 ---------- */
+  function renderMaterials() {
+    var range = getRange();
+    var base = baseAds();
+    var present = {};
+    base.forEach(function (a) { if (a.materialId) present[a.materialId] = 1; });
+    var mats = visibleMaterials().filter(function (m) { return !!present[m.id]; });
+    var q = SEARCH.material.trim();
+    var rows = mats.map(function (m) {
+      var ads = base.filter(function (x) { return x.materialId === m.id && inRange(x.createdAt, range); });
+      var rej = base.filter(function (x) { return x.materialId === m.id && x.firstRejectAt && inRange(x.firstRejectAt, range); });
+      if (FILTERS.reason) rej = rej.filter(function (x) { return x.reasons.indexOf(FILTERS.reason) >= 0; });
+      var counts = {};
+      rej.forEach(function (x) { if (x.reasons[0]) counts[x.reasons[0]] = (counts[x.reasons[0]] || 0) + 1; });
+      var reasons = Object.keys(counts).map(function (k) { return { text: k, count: counts[k] }; }).sort(function (a, b) { return b.count - a.count; });
+      var last = rej.reduce(function (acc, x) { return !acc || x.firstRejectAt > acc ? x.firstRejectAt : acc; }, null);
+      return { mat: m, ads: ads.length, rejects: rej.length, reasons: reasons, last: last };
+    }).filter(function (r) {
+      if (!q) return true;
+      return (r.mat.name + ' ' + r.mat.editor + ' ' + r.mat.drama).indexOf(q) >= 0;
+    });
+    if (SORT.material === 'reject_desc') rows.sort(function (a, b) { return b.rejects - a.rejects || a.mat.name.localeCompare(b.mat.name); });
+    else if (SORT.material === 'ads_desc') rows.sort(function (a, b) { return b.ads - a.ads; });
+    else rows.sort(function (a, b) { return a.mat.name.localeCompare(b.mat.name, 'zh'); });
+    document.getElementById('materialCount').textContent = rows.length + ' 个素材 · ' + rangeText(range);
+    var empty = document.getElementById('materialEmpty');
+    var table = document.querySelector('#page-materials .table-wrap');
+    if (!rows.length) { empty.hidden = false; table.hidden = true; return; }
+    empty.hidden = true; table.hidden = false;
+    document.getElementById('materialBody').innerHTML = rows.map(function (r) {
+      var main = r.reasons.length ? r.reasons[0].text : '—';
+      var mini = '';
+      if (r.reasons.length) {
+        var total = r.reasons.reduce(function (s, x) { return s + x.count; }, 0);
+        mini = r.reasons.slice(0, 5).map(function (x) {
+          return '<i style="flex:' + x.count + ' 1 0" data-tip="' + esc(x.text + ' · ' + x.count + ' 条') + '"></i>';
+        }).join('');
+      } else mini = '<span class="count-note">—</span>';
+      return '<tr class="clickable" data-material="' + esc(r.mat.id) + '">' +
+        '<td><div class="cell-stack"><b title="' + esc(r.mat.name) + '">' + esc(r.mat.name) + '</b><span>' + esc(r.mat.project) + ' · ' + esc(r.mat.lang) + ' · ' + esc(r.mat.drama) + '</span></div></td>' +
+        '<td><div class="cell-stack"><b>' + esc(r.mat.editor) + '</b><span>' + esc(r.mat.editorTeam) + '</span></div></td>' +
+        '<td class="ta-r">' + fmt(r.ads) + '</td>' +
+        '<td class="ta-r">' + fmt(r.rejects) + '</td>' +
+        '<td title="' + esc(main) + '">' + esc(main) + '</td>' +
+        '<td><span class="mini-band">' + mini + '</span></td>' +
+        '<td class="ta-r">' + (r.last ? fmtShort(r.last) + ' ' + pad(r.last.getHours()) + ':' + pad(r.last.getMinutes()) : '—') + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  /* ---------- 渲染：拒审明细与未归因 ---------- */
+  function adRow(a, withMaterial) {
+    var acc = ACCMAP[a.accountId];
+    var m = a.materialId ? MATMAP[a.materialId] : null;
+    var camp = CAMPMAP[a.campaignId];
+    var main = a.reasons.length ? a.reasons[0] : '—';
+    var approx = a.createdAt < addDays(TODAY0, -LAUNCH_GAP);
+    var status = a.deleted ? '<span class="chip bad">已删除</span>' : '<span class="chip good"><span class="ico">●</span>正常</span>';
+    var matCell = withMaterial ? '' : '<td><div class="cell-stack"><b title="' + esc(m ? m.name : '未归因') + '">' + esc(m ? m.name : '未归因') + '</b><span>' + esc(m ? m.editor + ' · ' + m.editorTeam : '广告名称未匹配素材库') + '</span></div></td>';
+    var lang = m ? m.lang : acc.lang;
+    var proj = m ? m.project : '—';
+    var drama = m ? m.drama : '—';
+    return '<tr class="clickable" data-ad="' + esc(a.id) + '">' +
+      '<td><div class="cell-stack"><b title="' + esc(a.name) + '">' + esc(a.name) + '</b><span>' + esc(camp ? camp.name : a.campaignId) + '</span></div></td>' +
+      '<td><div class="cell-stack"><b>' + fmtDateTime(a.firstRejectAt) + '</b><span>' + (approx ? '历史近似' : '实时采集') + '</span></div></td>' +
+      '<td title="' + esc(a.reasons.join(' / ')) + '">' + esc(main) + (a.reasons.length > 1 ? ' <span class="count-note">+' + (a.reasons.length - 1) + '</span>' : '') + '</td>' +
+      '<td><div class="cell-stack"><b>' + esc(acc.name) + '</b><span>' + esc(acc.buyer) + '</span></div></td>' +
+      matCell +
+      '<td><div class="cell-stack"><b>' + esc(proj) + ' · ' + esc(lang) + '</b><span>' + esc(drama) + '</span></div></td>' +
+      '<td>' + status + '</td>' +
+      '</tr>';
+  }
+
+  function filteredRejects(range, extra) {
+    var base = baseAds().filter(function (a) { return a.firstRejectAt && inRange(a.firstRejectAt, range); });
+    if (FILTERS.reason) base = base.filter(function (a) { return a.reasons.indexOf(FILTERS.reason) >= 0; });
+    if (extra === 'unattributed') base = base.filter(function (a) { return !a.materialId; });
+    return base.sort(function (a, b) { return b.firstRejectAt - a.firstRejectAt; });
+  }
+  function searchAds(ads, q) {
+    if (!q) return ads;
+    return ads.filter(function (a) {
+      var acc = ACCMAP[a.accountId];
+      var m = a.materialId ? MATMAP[a.materialId] : null;
+      var camp = CAMPMAP[a.campaignId];
+      var hay = a.name + ' ' + (camp ? camp.name : '') + ' ' + acc.name + ' ' + acc.buyer + ' ' + (m ? m.name + ' ' + m.editor : '未归因');
+      return hay.indexOf(q) >= 0;
+    });
+  }
+  function renderDetail() {
+    var range = getRange();
+    var q = SEARCH.detail.trim();
+    var rows = searchAds(filteredRejects(range), q);
+    var chip = document.getElementById('accountChip');
+    if (FILTERS.account && ACCMAP[FILTERS.account]) {
+      chip.hidden = false;
+      chip.innerHTML = '账户：' + esc(ACCMAP[FILTERS.account].name) + ' <button class="btn-ghost" style="height:18px;padding:0 5px;margin-left:4px" id="chipClear">移除</button>';
+    } else chip.hidden = true;
+    var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+    PG.detail = clamp(PG.detail, 1, totalPages);
+    var pageRows = rows.slice((PG.detail - 1) * PAGE_SIZE, PG.detail * PAGE_SIZE);
+    document.getElementById('detailCount').textContent = rows.length + ' 条拒审 · ' + rangeText(range);
+    var empty = document.getElementById('detailEmpty');
+    var table = document.querySelector('#page-detail .table-wrap');
+    if (!rows.length) { empty.hidden = false; table.hidden = true; } else { empty.hidden = true; table.hidden = false; }
+    document.getElementById('detailBody').innerHTML = pageRows.map(function (a) { return adRow(a, false); }).join('');
+    renderPager('detailPager', rows.length, PG.detail, totalPages, 'detail');
+  }
+  function renderUnattributed() {
+    var range = getRange();
+    var q = SEARCH.unattr.trim();
+    var rows = searchAds(filteredRejects(range, 'unattributed'), q);
+    var allRej = filteredRejects(range);
+    var coverage = allRej.length ? (allRej.length - rows.length) / allRej.length : 0;
+    document.getElementById('unattrSummary').innerHTML =
+      '<span><b>' + fmt(rows.length) + '</b>未归因拒审</span>' +
+      '<span><b>' + fmt(allRej.length) + '</b>拒审总数</span>' +
+      '<span><b>' + pct(coverage) + '</b>归因覆盖率</span>';
+    var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+    PG.unattr = clamp(PG.unattr, 1, totalPages);
+    var pageRows = rows.slice((PG.unattr - 1) * PAGE_SIZE, PG.unattr * PAGE_SIZE);
+    var empty = document.getElementById('unattrEmpty');
+    var table = document.querySelector('#page-unattributed .table-wrap');
+    if (!rows.length) { empty.hidden = false; table.hidden = true; } else { empty.hidden = true; table.hidden = false; }
+    document.getElementById('unattrBody').innerHTML = pageRows.map(function (a) { return adRow(a, true); }).join('');
+    renderPager('unattrPager', rows.length, PG.unattr, totalPages, 'unattr');
+  }
+  function renderPager(id, total, page, totalPages, key) {
+    var el = document.getElementById(id);
+    if (total <= PAGE_SIZE) { el.innerHTML = total ? '<span class="pg-info">共 ' + total + ' 条</span>' : ''; return; }
+    var html = '<span class="pg-info">共 ' + total + ' 条 · 第 ' + page + ' / ' + totalPages + ' 页</span>';
+    html += '<button class="pg" data-pg="' + (page - 1) + '" data-pgkey="' + key + '"' + (page <= 1 ? ' disabled' : '') + '>上一页</button>';
+    var from = Math.max(1, page - 2), to = Math.min(totalPages, from + 4);
+    from = Math.max(1, to - 4);
+    for (var i = from; i <= to; i++) html += '<button class="pg' + (i === page ? ' active' : '') + '" data-pg="' + i + '" data-pgkey="' + key + '">' + i + '</button>';
+    html += '<button class="pg" data-pg="' + (page + 1) + '" data-pgkey="' + key + '"' + (page >= totalPages ? ' disabled' : '') + '>下一页</button>';
+    el.innerHTML = html;
+  }
+
+  /* ---------- 渲染：抽屉 ---------- */
+  function openDrawer() {
+    document.getElementById('drawerMask').hidden = false;
+    document.getElementById('drawer').hidden = false;
+    document.body.style.overflow = 'hidden';
+    setTimeout(function () { document.getElementById('drawerClose').focus(); }, 0);
+  }
+  function closeDrawer() {
+    document.getElementById('drawerMask').hidden = true;
+    document.getElementById('drawer').hidden = true;
+    document.body.style.overflow = '';
+    DRAWER_RETURN = null;
+    document.getElementById('drawerBack').hidden = true;
+  }
+  function openAdDrawer(id) {
+    var a = ADMAP[id];
+    if (!a) return;
+    var acc = ACCMAP[a.accountId];
+    var m = a.materialId ? MATMAP[a.materialId] : null;
+    var camp = CAMPMAP[a.campaignId];
+    var approx = a.createdAt < addDays(TODAY0, -LAUNCH_GAP);
+    document.getElementById('drawerEyebrow').textContent = 'REJECTED AD / ' + a.id;
+    document.getElementById('drawerTitle').textContent = a.name;
+    document.getElementById('drawerHint').textContent = camp ? camp.name : a.campaignId;
+    var back = document.getElementById('drawerBack');
+    if (DRAWER_RETURN && DRAWER_RETURN.type === 'material') {
+      back.hidden = false;
+      back.setAttribute('data-back', DRAWER_RETURN.id);
+    } else back.hidden = true;
+    var chips = '<span class="chip bad"><span class="ico">!</span>首次拒审 ' + fmtDateTime(a.firstRejectAt) + '</span>' +
+      (a.deleted ? '<span class="chip bad">已删除</span>' : '<span class="chip good"><span class="ico">●</span>正常</span>') +
+      (approx ? '<span class="chip warn">历史近似</span>' : '') +
+      (!m ? '<span class="chip warn">未归因</span>' : '');
+    var reasons = a.reasons.map(function (r) {
+      return '<div class="reason-item"><div class="rt">' + esc(r) + '</div><div class="rs">Meta 原始拒审原因 · 按返回顺序</div></div>';
+    }).join('');
+    var body = '<div style="display:flex;gap:6px;flex-wrap:wrap">' + chips + '</div>' +
+      '<div class="meta-grid">' +
+      metaItem('账户', acc.name) + metaItem('投手 / 团队', acc.buyer + ' · ' + acc.team.replace('短剧投放', '')) +
+      metaItem('Campaign', camp ? camp.name : a.campaignId) + metaItem('创建时间', fmtDateTime(a.createdAt)) +
+      metaItem('素材', m ? m.name : '未归因') + metaItem('剪辑 / 团队', m ? m.editor + ' · ' + m.editorTeam : '—') +
+      metaItem('项目 / 语种 / 短剧', m ? m.project + ' · ' + m.lang + ' · ' + m.drama : '— · ' + acc.lang + ' · —') + metaItem('广告 ID', a.id) +
+      '</div>' +
+      '<div><div class="section-label">拒审原因 / ' + a.reasons.length + ' 条</div><div class="reason-list">' + reasons + '</div></div>' +
+      '<div><div class="section-label">创意预览</div><div class="preview"><div class="play">▶</div><div>创意预览占位</div><div class="ph">接入 META CREATIVE PREVIEW 后展示</div></div></div>' +
+      (!m ? '<div class="banner"><span class="bn-ico">!</span><div>该广告名称无法匹配素材归属系统。本期只展示，不提供认领；建议推动投手按素材命名规范命名广告。</div></div>' : '');
+    document.getElementById('drawerBody').innerHTML = body;
+    openDrawer();
+  }
+  function metaItem(k, v) {
+    return '<div class="meta-item"><div class="k">' + esc(k) + '</div><div class="v">' + esc(v == null ? '—' : v) + '</div></div>';
+  }
+  function openMaterialDrawer(id, keepReturn) {
+    var m = MATMAP[id];
+    if (!m) return;
+    var range = getRange();
+    var ads = baseAds().filter(function (a) { return a.materialId === id && inRange(a.createdAt, range); });
+    var rej = baseAds().filter(function (a) { return a.materialId === id && a.firstRejectAt && inRange(a.firstRejectAt, range); });
+    if (FILTERS.reason) rej = rej.filter(function (a) { return a.reasons.indexOf(FILTERS.reason) >= 0; });
+    var counts = {};
+    rej.forEach(function (a) { if (a.reasons[0]) counts[a.reasons[0]] = (counts[a.reasons[0]] || 0) + 1; });
+    var reasonRows = Object.keys(counts).map(function (k) { return { text: k, count: counts[k] }; }).sort(function (a, b) { return b.count - a.count; });
+    var total = reasonRows.reduce(function (s, r) { return s + r.count; }, 0);
+    var bars = reasonRows.length ? reasonRows.map(function (r) {
+      return '<div class="rank-row" style="grid-template-columns:minmax(90px,1fr) minmax(50px,1fr) 42px"><span class="rank-name" title="' + esc(r.text) + '">' + esc(r.text) + '</span><span class="rank-track"><span class="rank-fill" style="width:' + Math.max(3, r.count / reasonRows[0].count * 100) + '%"></span></span><span class="rank-num">' + r.count + '</span></div>';
+    }).join('') : '<div class="anomaly-empty">当前范围没有拒审</div>';
+    document.getElementById('drawerEyebrow').textContent = 'MATERIAL / ' + m.id;
+    document.getElementById('drawerTitle').textContent = m.name;
+    document.getElementById('drawerHint').textContent = m.editor + ' · ' + m.editorTeam;
+    document.getElementById('drawerBack').hidden = true;
+    var latest = rej.slice().sort(function (a, b) { return b.firstRejectAt - a.firstRejectAt; }).slice(0, 8);
+    var links = latest.map(function (a) {
+      return '<button class="ad-link" data-ad="' + esc(a.id) + '"><span class="t">' + esc(a.name) + '</span><span class="d">' + fmtDayTime(a.firstRejectAt) + '</span></button>';
+    }).join('');
+    var body = '<div class="meta-grid">' +
+      metaItem('剪辑人', m.editor) + metaItem('团队', m.editorTeam) +
+      metaItem('项目 / 语种', m.project + ' · ' + m.lang) + metaItem('短剧', m.drama) +
+      metaItem('当期投放广告', fmt(ads.length) + ' 条') + metaItem('当期拒审', fmt(rej.length) + ' 次 · ' + pct(ads.length ? rej.length / ads.length : 0)) +
+      '</div>' +
+      '<div><div class="section-label">拒审原因分布 / 共 ' + total + ' 次</div>' + bars + '</div>' +
+      '<div><div class="section-label">近期拒审广告</div><div class="ad-links">' + (links || '<div class="anomaly-empty">当前范围没有拒审广告</div>') + '</div></div>' +
+      '<div><div class="section-label">素材预览</div><div class="preview"><div class="play">▶</div><div>素材预览占位</div><div class="ph">接入素材归属系统后展示</div></div></div>';
+    document.getElementById('drawerBody').innerHTML = body;
+    if (!keepReturn) DRAWER_RETURN = null;
+    openDrawer();
+  }
+
+  /* ---------- 阈值设置抽屉 ---------- */
+  function fillThreshForm(scope) {
+    var o = scope === 'global' ? THRESH : (THRESH.overrides[scope] || {});
+    document.getElementById('thRate').value = o.rate != null ? o.rate : THRESH.rate;
+    document.getElementById('thUnattr').value = o.unattr != null ? o.unattr : THRESH.unattr;
+    document.getElementById('thRise').value = o.rise != null ? o.rise : THRESH.rise;
+    document.getElementById('thErr').textContent = '';
+  }
+  function openSettingsDrawer() {
+    document.getElementById('drawerEyebrow').textContent = 'SETTINGS / THRESHOLDS';
+    document.getElementById('drawerTitle').textContent = '异常高亮阈值';
+    document.getElementById('drawerHint').textContent = '仅管理员可调整 · 保存后立即重算';
+    document.getElementById('drawerBack').hidden = true;
+    var opts = '<option value="global">全局默认</option>' + TEAMS.map(function (t) { return '<option value="' + esc(t) + '">' + esc(t) + '</option>'; }).join('');
+    var inputStyle = 'width:100%;height:32px;border:1px solid var(--line-strong);border-radius:4px;background:var(--surface);padding:0 8px;font-size:12px';
+    var body = '<div class="meta-grid">' +
+      '<div class="meta-item"><div class="k">适用范围</div><select id="thScope" style="' + inputStyle + '">' + opts + '</select></div>' +
+      '<div class="meta-item"><div class="k">拒审率阈值 / %</div><input id="thRate" type="number" min="0" max="100" step="0.1" style="' + inputStyle + '"></div>' +
+      '<div class="meta-item"><div class="k">未归因数阈值 / 条</div><input id="thUnattr" type="number" min="0" max="999" step="1" style="' + inputStyle + '"></div>' +
+      '<div class="meta-item"><div class="k">环比突增阈值 / %</div><input id="thRise" type="number" min="0" max="1000" step="1" style="' + inputStyle + '"></div>' +
+      '</div>' +
+      '<div class="hint" style="font-size:11px;color:var(--muted);line-height:1.6">团队未单独配置时沿用全局值。拒审率为当日拒审广告数 ÷ 当日新建广告数；未归因阈值为当日未归因拒审条数；环比为较近 7 日均值的上涨比例。</div>' +
+      '<div id="thErr" style="font-size:11px;color:var(--red);min-height:16px"></div>' +
+      '<div style="display:flex;gap:8px"><button class="btn" id="thSave" style="flex:1">保存阈值</button><button class="btn line" id="thCancel">取消</button></div>';
+    document.getElementById('drawerBody').innerHTML = body;
+    fillThreshForm('global');
+    document.getElementById('thScope').addEventListener('change', function (e) { fillThreshForm(e.target.value); });
+    document.getElementById('thSave').addEventListener('click', function () {
+      var scope = document.getElementById('thScope').value;
+      var rate = parseFloat(document.getElementById('thRate').value);
+      var unattr = parseFloat(document.getElementById('thUnattr').value);
+      var rise = parseFloat(document.getElementById('thRise').value);
+      if (isNaN(rate) || isNaN(unattr) || isNaN(rise) || rate < 0 || rate > 100 || unattr < 0 || rise < 0) {
+        document.getElementById('thErr').textContent = '请填写有效阈值：拒审率 0–100，未归因与环比不小于 0。';
+        return;
+      }
+      var val = { rate: rate, unattr: unattr, rise: rise };
+      if (scope === 'global') { THRESH.rate = rate; THRESH.unattr = unattr; THRESH.rise = rise; }
+      else { THRESH.overrides[scope] = val; }
+      closeDrawer();
+      renderOverview();
+    });
+    document.getElementById('thCancel').addEventListener('click', closeDrawer);
+    openDrawer();
+  }
+
+  /* ---------- 提示浮层 ---------- */
+  function showTip(text, x, y) {
+    var tip = document.getElementById('tip');
+    tip.textContent = text;
+    tip.hidden = false;
+    var w = tip.offsetWidth, h = tip.offsetHeight;
+    tip.style.left = clamp(x + 12, 8, window.innerWidth - w - 8) + 'px';
+    tip.style.top = clamp(y - h - 10, 8, window.innerHeight - h - 8) + 'px';
+  }
+  function hideTip() { document.getElementById('tip').hidden = true; }
+
+  /* ---------- 事件 ---------- */
+  function resetFilters() {
+    FILTERS = { team: '', buyer: '', editor: '', project: '', lang: '', drama: '', reason: '', attr: '', account: '' };
+    SEARCH = { account: '', material: '', detail: '', unattr: '' };
+    PG = { detail: 1, unattr: 1 };
+    document.getElementById('accountSearch').value = '';
+    document.getElementById('materialSearch').value = '';
+    document.getElementById('detailSearch').value = '';
+    document.getElementById('unattrSearch').value = '';
+    ['fTeam', 'fBuyer', 'fEditor', 'fProject', 'fLang', 'fDrama', 'fReason', 'fAttr'].forEach(function (id) { var el = document.getElementById(id); if (el) el.value = ''; });
+  }
+  function goPage(p) {
+    PAGE = p;
+    renderChrome();
+    if (p === 'overview') renderOverview();
+    else if (p === 'accounts') renderAccounts();
+    else if (p === 'materials') renderMaterials();
+    else if (p === 'detail') renderDetail();
+    else if (p === 'unattributed') renderUnattributed();
+  }
+  function bindEvents() {
+    document.getElementById('nav').addEventListener('click', function (e) {
+      var b = e.target.closest('.nav-item');
+      if (b) goPage(b.getAttribute('data-page'));
+    });
+    document.getElementById('roleSelect').addEventListener('change', function (e) {
+      ROLE = e.target.value;
+      closeDrawer();
+      resetFilters();
+      syncFilterOptions();
+      renderAll();
+    });
+    document.getElementById('dateSeg').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-preset]');
+      if (!b) return;
+      PRESET = b.getAttribute('data-preset');
+      PG = { detail: 1, unattr: 1 };
+      renderAll();
+    });
+    ['fTeam', 'fBuyer', 'fEditor', 'fProject', 'fLang', 'fDrama', 'fReason', 'fAttr'].forEach(function (id) {
+      document.getElementById(id).addEventListener('change', function (e) {
+        FILTERS[id.slice(1).toLowerCase()] = e.target.value;
+        PG = { detail: 1, unattr: 1 };
+        renderAll();
+      });
+    });
+    document.getElementById('fFrom').addEventListener('change', function (e) { CUSTOM.from = e.target.value; renderAll(); });
+    document.getElementById('fTo').addEventListener('change', function (e) { CUSTOM.to = e.target.value; renderAll(); });
+    document.getElementById('btnClearFilters').addEventListener('click', function () { resetFilters(); syncFilterOptions(); renderAll(); });
+    document.querySelectorAll('[data-clear]').forEach(function (b) { b.addEventListener('click', function () { resetFilters(); syncFilterOptions(); renderAll(); }); });
+    document.getElementById('accountSearch').addEventListener('input', debounce(function (e) { SEARCH.account = e.target.value; renderAccounts(); }, 120));
+    document.getElementById('materialSearch').addEventListener('input', debounce(function (e) { SEARCH.material = e.target.value; renderMaterials(); }, 120));
+    document.getElementById('detailSearch').addEventListener('input', debounce(function (e) { SEARCH.detail = e.target.value; PG.detail = 1; renderDetail(); }, 120));
+    document.getElementById('unattrSearch').addEventListener('input', debounce(function (e) { SEARCH.unattr = e.target.value; PG.unattr = 1; renderUnattributed(); }, 120));
+    document.getElementById('accountSort').addEventListener('change', function (e) { SORT.account = e.target.value; renderAccounts(); });
+    document.getElementById('materialSort').addEventListener('change', function (e) { SORT.material = e.target.value; renderMaterials(); });
+    document.getElementById('trendMode').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-mode]');
+      if (!b) return;
+      TREND_MODE = b.getAttribute('data-mode');
+      document.querySelectorAll('#trendMode button').forEach(function (x) { x.classList.toggle('active', x.getAttribute('data-mode') === TREND_MODE); });
+      renderOverview();
+    });
+    document.getElementById('accountBody').addEventListener('click', function (e) {
+      var tr = e.target.closest('tr[data-account]');
+      if (!tr) return;
+      FILTERS.account = tr.getAttribute('data-account');
+      PG.detail = 1;
+      PAGE = 'detail';
+      renderAll();
+    });
+    document.getElementById('materialBody').addEventListener('click', function (e) {
+      var tr = e.target.closest('tr[data-material]');
+      if (tr) openMaterialDrawer(tr.getAttribute('data-material'));
+    });
+    document.getElementById('detailBody').addEventListener('click', function (e) {
+      var tr = e.target.closest('tr[data-ad]');
+      if (tr) { DRAWER_RETURN = null; openAdDrawer(tr.getAttribute('data-ad')); }
+    });
+    document.getElementById('unattrBody').addEventListener('click', function (e) {
+      var tr = e.target.closest('tr[data-ad]');
+      if (tr) { DRAWER_RETURN = null; openAdDrawer(tr.getAttribute('data-ad')); }
+    });
+    document.getElementById('detailPager').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-pg]');
+      if (!b || b.disabled) return;
+      PG.detail = parseInt(b.getAttribute('data-pg'), 10); renderDetail();
+    });
+    document.getElementById('unattrPager').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-pg]');
+      if (!b || b.disabled) return;
+      PG.unattr = parseInt(b.getAttribute('data-pg'), 10); renderUnattributed();
+    });
+    document.getElementById('anomalyList').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-anom]');
+      if (!b) return;
+      var parts = b.getAttribute('data-anom').split('|');
+      if (parts[0] === 'account') { FILTERS.account = parts[1]; PAGE = 'detail'; PG.detail = 1; renderAll(); }
+      else if (parts[0] === 'team') { FILTERS.team = parts[1]; syncFilterOptions(); PAGE = 'accounts'; renderAll(); }
+      else if (parts[0] === 'material') { openMaterialDrawer(parts[1]); }
+      else if (parts[0] === 'unattr') { FILTERS.attr = ''; PAGE = 'unattributed'; renderAll(); }
+      else if (parts[0] === 'unattr-team') { FILTERS.team = parts[1]; FILTERS.attr = ''; syncFilterOptions(); PAGE = 'unattributed'; renderAll(); }
+    });
+    document.getElementById('btnThreshold').addEventListener('click', openSettingsDrawer);
+    document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+    document.getElementById('drawerMask').addEventListener('click', closeDrawer);
+    document.getElementById('drawerBack').addEventListener('click', function () {
+      var id = this.getAttribute('data-back');
+      if (id) { DRAWER_RETURN = null; openMaterialDrawer(id); }
+    });
+    document.getElementById('drawerBody').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-ad]');
+      if (!b) return;
+      var mid = null;
+      if (DRAWER_RETURN && DRAWER_RETURN.type === 'material') mid = DRAWER_RETURN.id;
+      else {
+        var title = document.getElementById('drawerTitle').textContent;
+        var found = MATERIALS.filter(function (m) { return m.name === title; })[0];
+        if (found) mid = found.id;
+      }
+      if (mid) DRAWER_RETURN = { type: 'material', id: mid };
+      openAdDrawer(b.getAttribute('data-ad'));
+    });
+    document.getElementById('drawerBody').addEventListener('click', function (e) {
+      if (e.target && e.target.id === 'chipClear') { /* handled elsewhere */ }
+    });
+    document.addEventListener('click', function (e) {
+      if (e.target && e.target.id === 'chipClear') {
+        FILTERS.account = '';
+        PG.detail = 1;
+        renderAll();
+      }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { closeDrawer(); hideTip(); }
+    });
+    document.addEventListener('mouseover', function (e) {
+      var t = e.target.closest('[data-tip]');
+      if (t) showTip(t.getAttribute('data-tip'), e.clientX, e.clientY);
+    });
+    document.addEventListener('mousemove', function (e) {
+      var t = e.target.closest('[data-tip]');
+      if (t) showTip(t.getAttribute('data-tip'), e.clientX, e.clientY);
+    });
+    document.addEventListener('mouseout', function (e) {
+      if (e.target.closest && e.target.closest('[data-tip]')) hideTip();
+    });
+    window.addEventListener('resize', debounce(function () {
+      if (PAGE === 'overview') renderOverview();
+      else if (PAGE === 'accounts') renderAccounts();
+      else if (PAGE === 'materials') renderMaterials();
+    }, 180));
+  }
+
+  function renderAll() {
+    syncFilterOptions();
+    renderChrome();
+    renderOverview();
+    renderAccounts();
+    renderMaterials();
+    renderDetail();
+    renderUnattributed();
+  }
+
+  function init() {
+    window.__errs = [];
+    window.addEventListener('error', function (e) { window.__errs.push(e.message); });
+    window.addEventListener('unhandledrejection', function (e) { window.__errs.push(String(e.reason)); });
+    buildData();
+    var sel = document.getElementById('roleSelect');
+    Object.keys(ROLES).forEach(function (k) {
+      var o = document.createElement('option');
+      o.value = k; o.textContent = ROLES[k].label;
+      sel.appendChild(o);
+    });
+    sel.value = ROLE;
+    document.getElementById('fFrom').value = CUSTOM.from;
+    document.getElementById('fTo').value = CUSTOM.to;
+    bindEvents();
+    renderAll();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+</body>
+</html>
