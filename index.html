@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Meta 基建拒审看板</title>
+<title>基建拒审看板</title>
 <style>
 :root{
   --ink:#101418; --ink-2:#1b222a; --ink-3:#2a333d;
@@ -190,6 +190,10 @@ tbody tr.clickable:hover{background:#fafaf6}
 .reason-item{border:1px solid var(--line);border-radius:4px;padding:8px 10px;background:var(--surface-2)}
 .reason-item .rt{font-size:12px;font-weight:500}
 .reason-item .rs{font-size:10px;color:var(--muted);margin-top:2px}
+.link-btn{border:0;background:none;padding:0;font-size:12px;color:var(--blue);text-decoration:underline;text-underline-offset:2px}
+.link-btn:hover{color:var(--blue-ink)}
+.preview-img{width:100%;height:190px;object-fit:cover;border-radius:4px;border:1px solid var(--line);display:block;background:#e9e9e4}
+.preview-empty{height:190px;border:1px dashed var(--line-strong);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;background:var(--surface-2)}
 .preview{height:190px;border:1px solid var(--line);border-radius:4px;background:linear-gradient(135deg,#1b222a 0%,#2a333d 55%,#3a4652 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#c9d0d6;font-size:12px}
 .preview .play{width:38px;height:38px;border:1px solid rgba(255,255,255,.45);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff}
 .preview .ph{font:10px/1.4 var(--mono);letter-spacing:.1em;color:#8d959d}
@@ -226,10 +230,10 @@ tbody tr.clickable:hover{background:#fafaf6}
 <div class="app">
   <aside class="rail">
     <div class="brand">
-      <div class="brand-mark">MB</div>
+      <div class="brand-mark">拒</div>
       <div>
-        <div class="brand-name">Meta 基建拒审</div>
-        <div class="brand-sub">BUILD &amp; REVIEW</div>
+        <div class="brand-name">基建拒审看板</div>
+        <div class="brand-sub">投放监控</div>
       </div>
     </div>
     <nav class="nav" id="nav" aria-label="主导航">
@@ -238,7 +242,7 @@ tbody tr.clickable:hover{background:#fafaf6}
       <button class="nav-item" data-target="sec-detail"><span class="nav-ini">拒</span><span class="nav-dot"></span><span class="nav-text">拒审明细</span></button>
     </nav>
     <div class="rail-foot">
-      <div class="rail-label">视角 / ROLE</div>
+      <div class="rail-label">切换视角</div>
       <select class="role-select" id="roleSelect" aria-label="切换演示角色"></select>
       <div class="scope-note" id="scopeNote">全量账户 · 全量素材</div>
       <div class="fresh" id="freshBox">
@@ -250,7 +254,7 @@ tbody tr.clickable:hover{background:#fafaf6}
   <main class="main">
     <header class="topbar">
       <div>
-        <div class="eyebrow" id="pageEyebrow">META / BUILD &amp; REVIEW</div>
+        <div class="eyebrow" id="pageEyebrow">投放数据看板</div>
         <h1 id="pageTitle">基建与拒审看板</h1>
         <div class="page-sub" id="pageSub">一页查看总览、团队和人员、拒审明细</div>
       </div>
@@ -282,69 +286,65 @@ tbody tr.clickable:hover{background:#fafaf6}
         <div class="kpi-grid" id="kpiGrid"></div>
         <section class="card">
           <div class="card-head">
-            <div><div class="eyebrow">TREND</div><h2 id="trendTitle">趋势</h2><div class="hint" id="trendHint">按自然日聚合</div></div>
+            <div><h2 id="trendTitle">趋势</h2><div class="hint" id="trendHint">按自然日聚合</div></div>
           </div>
           <div class="mini-grid" id="trendGrid"></div>
         </section>
         <section class="card">
-          <div class="card-head"><div><div class="eyebrow">REJECT REASONS</div><h2>拒审原因分布</h2><div class="hint">按 Meta 原始原因聚合，主因取第一条</div></div><span class="chip muted" id="reasonTotal">--</span></div>
+          <div class="card-head"><div><h2>拒审原因分布</h2><div class="hint">按平台原始原因聚合，主因取第一条</div></div><span class="chip muted" id="reasonTotal">--</span></div>
           <div class="band" id="reasonBand"></div>
           <div class="rank" id="reasonRank"></div>
         </section>
       </section>
       <section class="dash-section" id="sec-team">
-        <div class="section-head"><div><div class="eyebrow">TEAM &amp; PEOPLE</div><h2>团队和人员</h2><div class="hint">账户与投手、素材与剪辑的基建与拒审</div></div></div>
+        <div class="section-head"><div><h2>团队和人员</h2><div class="hint">按团队或人员查看基建与拒审</div></div><div class="seg" id="groupMode" role="group" aria-label="数据组织方式"><button data-group="team" class="active">按团队</button><button data-group="person">按人员</button></div></div>
         <section class="card">
           <div class="toolbar">
-            <div class="search"><input id="accountSearch" placeholder="搜索账户、投手或团队" aria-label="搜索账户"></div>
-            <select id="accountSort" aria-label="账户排序">
+            <select id="accountSort" aria-label="团队人员排序">
               <option value="rate_desc">拒审率从高到低</option>
               <option value="reject_desc">拒审次数从多到少</option>
               <option value="ads_desc">广告基建数从多到少</option>
-              <option value="name_asc">账户名升序</option>
             </select>
             <span class="count-note" id="accountCount">--</span>
           </div>
           <div class="table-wrap" id="accountTableWrap">
-            <table aria-label="账户与投手">
-              <colgroup><col style="width:21%"><col style="width:15%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:10%"><col style="width:11%"><col style="width:10%"></colgroup>
-              <thead><tr><th>账户</th><th>团队 / 投手</th><th class="ta-r">计划基建</th><th class="ta-r">广告基建</th><th class="ta-r">拒审次数</th><th class="ta-r">拒审率</th><th>近 7 日拒审</th><th>状态</th></tr></thead>
+            <table aria-label="团队与投手">
+              <colgroup><col style="width:26%"><col style="width:14%"><col style="width:14%"><col style="width:14%"><col style="width:14%"><col style="width:18%"></colgroup>
+              <thead><tr><th id="groupHead1">团队</th><th class="ta-r">计划基建</th><th class="ta-r">广告基建</th><th class="ta-r">拒审次数</th><th class="ta-r">拒审率</th><th>近 7 日拒审</th></tr></thead>
               <tbody id="accountBody"></tbody>
             </table>
           </div>
-          <div class="empty" id="accountEmpty" hidden><h3>没有匹配的账户</h3><p>当前筛选或搜索条件下没有账户数据，试试放宽条件。</p><button class="btn line" data-clear>清除筛选</button></div>
+          <div class="empty" id="accountEmpty" hidden><h3>没有匹配的数据</h3><p>当前筛选条件下没有团队或人员数据，试试放宽条件。</p><button class="btn line" data-clear>清除筛选</button></div>
         </section>
         <section class="card">
           <div class="toolbar">
-            <div class="search"><input id="materialSearch" placeholder="搜索素材、剪辑人或短剧" aria-label="搜索素材"></div>
-            <select id="materialSort" aria-label="素材排序">
+            <select id="materialSort" aria-label="素材聚合排序">
               <option value="reject_desc">拒审次数从多到少</option>
               <option value="ads_desc">投放广告数从多到少</option>
-              <option value="name_asc">素材名升序</option>
             </select>
             <span class="count-note" id="materialCount">--</span>
           </div>
           <div class="table-wrap" id="materialTableWrap">
-            <table aria-label="素材与剪辑">
-              <colgroup><col style="width:30%"><col style="width:15%"><col style="width:10%"><col style="width:10%"><col style="width:19%"><col style="width:12%"><col style="width:4%"></colgroup>
-              <thead><tr><th>素材</th><th>剪辑 / 团队</th><th class="ta-r">投放广告</th><th class="ta-r">拒审次数</th><th>主因</th><th class="ta-r">原因分布</th><th>最近</th></tr></thead>
+            <table aria-label="素材拒审聚合">
+              <colgroup><col style="width:24%"><col style="width:14%"><col style="width:14%"><col style="width:22%"><col style="width:16%"><col style="width:10%"></colgroup>
+              <thead><tr><th id="groupHead2">剪辑团队</th><th class="ta-r">投放广告</th><th class="ta-r">拒审次数</th><th>主因</th><th class="ta-r">原因分布</th><th>最近</th></tr></thead>
               <tbody id="materialBody"></tbody>
             </table>
           </div>
-          <div class="empty" id="materialEmpty" hidden><h3>没有匹配的素材</h3><p>当前筛选或搜索条件下没有素材数据，试试放宽条件。</p><button class="btn line" data-clear>清除筛选</button></div>
+          <div class="empty" id="materialEmpty" hidden><h3>没有匹配的数据</h3><p>当前筛选条件下没有素材拒审数据，试试放宽条件。</p><button class="btn line" data-clear>清除筛选</button></div>
         </section>
       </section>
       <section class="dash-section" id="sec-detail">
-        <div class="section-head"><div><div class="eyebrow">REJECTED ADS</div><h2>拒审明细</h2><div class="hint">以广告为单位的拒审记录</div></div><span class="chip info" id="accountChip" hidden></span></div>
+        <div class="section-head"><div><h2>拒审明细</h2><div class="hint">以广告为单位的拒审记录</div></div></div>
         <section class="card">
           <div class="toolbar">
-            <div class="search"><input id="detailSearch" placeholder="搜索广告、Campaign 或素材名" aria-label="搜索拒审明细"></div>
+            <div class="search"><input id="detailSearch" placeholder="搜索广告、广告计划或素材名" aria-label="搜索拒审明细"></div>
             <span class="count-note" id="detailCount">--</span>
           </div>
           <div class="table-wrap">
             <table aria-label="拒审明细">
-              <colgroup><col style="width:24%"><col style="width:13%"><col style="width:15%"><col style="width:14%"><col style="width:17%"><col style="width:11%"><col style="width:6%"></colgroup>
-              <thead><tr><th>广告</th><th>首次拒审</th><th>主因</th><th>账户 / 投手</th><th>素材 / 剪辑</th><th>项目 / 语种 / 短剧</th><th>状态</th></tr></thead>
+              <colgroup><col style="width:30%"><col style="width:15%"><col style="width:18%"><col style="width:16%"><col style="width:15%"><col style="width:6%"></colgroup>
+              <thead><tr><th>广告</th><th>首次拒审</th><th>主因</th><th>账户 / 投手</th><th>素材 / 剪辑</th><th>详情</th></tr></thead>
               <tbody id="detailBody"></tbody>
             </table>
           </div>
@@ -359,12 +359,11 @@ tbody tr.clickable:hover{background:#fafaf6}
 <aside class="drawer" id="drawer" hidden aria-label="详情抽屉">
   <div class="drawer-head">
     <div style="min-width:0">
-      <div class="eyebrow" id="drawerEyebrow">AD DETAIL</div>
+      <div class="eyebrow" id="drawerEyebrow">拒审广告</div>
       <h2 id="drawerTitle">--</h2>
       <div class="hint" id="drawerHint"></div>
     </div>
     <div class="drawer-actions">
-      <button class="icon-btn" id="drawerBack" hidden aria-label="返回素材">←</button>
       <button class="icon-btn" id="drawerClose" aria-label="关闭详情">×</button>
     </div>
   </div>
@@ -574,13 +573,13 @@ tbody tr.clickable:hover{background:#fafaf6}
   var ROLE = 'admin';
   var PRESET = 'yesterday';
   var ACTIVE_SECTION = 'sec-overview';
+  var GROUP_MODE = 'team';
   var CUSTOM = { from: fmtDate(addDays(TODAY0, -6)), to: fmtDate(TODAY0) };
-  var FILTERS = { team: '', person: '', lang: '', drama: '', attr: '', account: '' };
-  var SEARCH = { account: '', material: '', detail: '' };
+  var FILTERS = { team: '', person: '', lang: '', drama: '', attr: '' };
+  var SEARCH = { detail: '' };
   var SORT = { account: 'rate_desc', material: 'reject_desc' };
   var PG = { detail: 1 };
   var PAGE_SIZE = 20;
-  var DRAWER_RETURN = null;
 
   /* ---------- 范围与筛选 ---------- */
   function getRange() {
@@ -622,7 +621,6 @@ tbody tr.clickable:hover{background:#fafaf6}
   function matchBase(ad) {
     var acc = ACCMAP[ad.accountId];
     var m = ad.materialId ? MATMAP[ad.materialId] : null;
-    if (FILTERS.account && ad.accountId !== FILTERS.account) return false;
     if (FILTERS.team && acc.team !== FILTERS.team) return false;
     if (FILTERS.person) {
       var asBuyer = acc.buyer === FILTERS.person;
@@ -660,11 +658,10 @@ tbody tr.clickable:hover{background:#fafaf6}
   }
 
   /* ---------- 统计 ---------- */
-  function statsFor(range, applyReason) {
+  function statsFor(range) {
     var base = baseAds();
     var ads = base.filter(function (a) { return inRange(a.createdAt, range); });
     var rej = base.filter(function (a) { return a.firstRejectAt && inRange(a.firstRejectAt, range); });
-    if (applyReason && FILTERS.reason) rej = rej.filter(function (a) { return a.reasons.indexOf(FILTERS.reason) >= 0; });
     var cset = {};
     ads.forEach(function (a) { cset[a.campaignId] = 1; });
     var camps = CAMPAIGNS.filter(function (c) { return cset[c.id] && inRange(c.createdAt, range); });
@@ -709,7 +706,6 @@ tbody tr.clickable:hover{background:#fafaf6}
     buckets.forEach(function (b) {
       var ads = base.filter(function (a) { return inRange(a.createdAt, b); });
       var rej = base.filter(function (a) { return a.firstRejectAt && inRange(a.firstRejectAt, b); });
-      if (FILTERS.reason) rej = rej.filter(function (a) { return a.reasons.indexOf(FILTERS.reason) >= 0; });
       var cset = {};
       ads.forEach(function (a) { cset[a.campaignId] = 1; });
       var camps = CAMPAIGNS.filter(function (c) { return cset[c.id] && inRange(c.createdAt, b); });
@@ -784,19 +780,19 @@ tbody tr.clickable:hover{background:#fafaf6}
     };
   }
   function renderKpis(range, series) {
-    var cur = statsFor(range, true);
-    var prev = statsFor(prevRange(range), true);
+    var cur = statsFor(range);
+    var prev = statsFor(prevRange(range));
     var defs = [
-      { label: '广告计划基建数', mono: 'BUILD / CAMPAIGN', value: fmt(cur.campaigns), unit: '个', cur: cur.campaigns, prev: prev.campaigns, isRate: false, goodUp: true, spark: series.campaigns, color: BLUE },
-      { label: '广告基建数', mono: 'BUILD / AD', value: fmt(cur.ads), unit: '条', cur: cur.ads, prev: prev.ads, isRate: false, goodUp: true, spark: series.ads, color: BLUE },
-      { label: '广告拒审次数', mono: 'REJECTED / ADS', value: fmt(cur.rejects), unit: '次', cur: cur.rejects, prev: prev.rejects, isRate: false, goodUp: false, spark: series.rejects, color: RED },
-      { label: '拒审广告率', mono: 'REJECT RATE', value: pct(cur.rate), unit: '', cur: cur.rate, prev: prev.rate, isRate: true, goodUp: false, spark: series.rates, color: RED }
+      { label: '广告计划基建数', value: fmt(cur.campaigns), unit: '个', cur: cur.campaigns, prev: prev.campaigns, isRate: false, goodUp: true, spark: series.campaigns, color: BLUE },
+      { label: '广告基建数', value: fmt(cur.ads), unit: '条', cur: cur.ads, prev: prev.ads, isRate: false, goodUp: true, spark: series.ads, color: BLUE },
+      { label: '广告拒审次数', value: fmt(cur.rejects), unit: '次', cur: cur.rejects, prev: prev.rejects, isRate: false, goodUp: false, spark: series.rejects, color: RED },
+      { label: '拒审广告率', value: pct(cur.rate), unit: '', cur: cur.rate, prev: prev.rate, isRate: true, goodUp: false, spark: series.rates, color: RED }
     ];
     var html = '';
     defs.forEach(function (d, i) {
       var dd = deltaInfo(d.cur, d.prev, d.isRate, d.goodUp);
       html += '<div class="kpi" data-kpi="' + i + '">' +
-        '<div class="kpi-label"><span class="mono">' + d.mono + '</span><span>' + d.label + '</span></div>' +
+        '<div class="kpi-label">' + d.label + '</div>' +
         '<div class="kpi-value">' + d.value + (d.unit ? '<small>' + d.unit + '</small>' : '') + '</div>' +
         '<div class="kpi-foot"><span class="delta ' + dd.cls + '">' + esc(dd.text) + '</span><span class="spark" data-spark="' + i + '"></span></div>' +
         '</div>';
@@ -855,8 +851,8 @@ tbody tr.clickable:hover{background:#fafaf6}
     var lastA = series.ads[series.ads.length - 1] || 0;
     var lastR = series.rejects[series.rejects.length - 1] || 0;
     var gg = '';
-    gg += '<div class="mini"><div class="mini-head"><div><div class="eyebrow">BUILD / CAMPAIGN</div><div class="mini-title">广告计划基建数</div></div><div class="mini-value">' + fmt(lastC) + '</div></div><div class="chart" id="chart-campaigns"></div></div>';
-    gg += '<div class="mini"><div class="mini-head"><div><div class="eyebrow">BUILD &amp; REJECT</div><div class="mini-title">广告基建数 / 拒审次数</div></div><div class="mini-value">' + fmt(lastA) + ' <span style="color:var(--muted);font-weight:400">/</span> ' + fmt(lastR) + '</div></div>' +
+    gg += '<div class="mini"><div class="mini-head"><div><div class="mini-title">广告计划基建数</div></div><div class="mini-value">' + fmt(lastC) + '</div></div><div class="chart" id="chart-campaigns"></div></div>';
+    gg += '<div class="mini"><div class="mini-head"><div><div class="mini-title">广告基建数 / 拒审次数</div></div><div class="mini-value">' + fmt(lastA) + ' <span style="color:var(--muted);font-weight:400">/</span> ' + fmt(lastR) + '</div></div>' +
       '<div class="legend"><span><i style="background:' + BLUE + '"></i>广告基建数 · 左轴</span><span><i style="background:' + RED + '"></i>拒审次数 · 右轴</span></div>' +
       '<div class="chart" id="chart-dual"></div></div>';
     grid.innerHTML = gg;
@@ -983,7 +979,6 @@ tbody tr.clickable:hover{background:#fafaf6}
 
   function renderReasons(range) {
     var rej = baseAds().filter(function (a) { return a.firstRejectAt && inRange(a.firstRejectAt, range); });
-    if (FILTERS.reason) rej = rej.filter(function (a) { return a.reasons.indexOf(FILTERS.reason) >= 0; });
     var counts = {};
     rej.forEach(function (a) {
       if (!a.reasons.length) return;
@@ -1019,65 +1014,60 @@ tbody tr.clickable:hover{background:#fafaf6}
   }
 
   /* ---------- 渲染：账户与投手 ---------- */
+  function groupMetrics(pred, range, base) {
+    var ads = base.filter(function (a) { return pred(a) && inRange(a.createdAt, range); });
+    var rej = base.filter(function (a) { return pred(a) && a.firstRejectAt && inRange(a.firstRejectAt, range); });
+    var cset = {};
+    ads.forEach(function (a) { cset[a.campaignId] = 1; });
+    var camps = CAMPAIGNS.filter(function (c) { return cset[c.id] && inRange(c.createdAt, range); });
+    var last7 = [];
+    for (var d = 6; d >= 0; d--) {
+      var ds = startOfDay(addDays(TODAY0, -d)), de = addDays(ds, 1);
+      last7.push(base.filter(function (a) { return pred(a) && a.firstRejectAt && a.firstRejectAt >= ds && a.firstRejectAt < de; }).length);
+    }
+    return { campaigns: camps.length, ads: ads.length, rejects: rej.length, rate: ads.length ? rej.length / ads.length : 0, spark: last7 };
+  }
+
   function renderAccounts() {
     var range = getRange();
     var base = baseAds();
-    var accs = visibleAccounts().filter(function (a) {
-      if (FILTERS.account && a.id !== FILTERS.account) return false;
-      if (FILTERS.team && a.team !== FILTERS.team) return false;
-      if (FILTERS.buyer && a.buyer !== FILTERS.buyer) return false;
-      return true;
-    });
-    var q = SEARCH.account.trim();
-    var rows = accs.map(function (a) {
-      var ads = base.filter(function (x) { return x.accountId === a.id && inRange(x.createdAt, range); });
-      var rej = base.filter(function (x) { return x.accountId === a.id && x.firstRejectAt && inRange(x.firstRejectAt, range); });
-      if (FILTERS.reason) rej = rej.filter(function (x) { return x.reasons.indexOf(FILTERS.reason) >= 0; });
-      var rset = {};
-      ads.forEach(function (x) { rset[x.campaignId] = 1; });
-      var camps = CAMPAIGNS.filter(function (c) { return rset[c.id] && inRange(c.createdAt, range); });
-      var attributed = rej.filter(function (x) { return !!x.materialId; }).length;
-      var last7 = [];
-      for (var d = 6; d >= 0; d--) {
-        var ds = startOfDay(addDays(TODAY0, -d));
-        var de = addDays(ds, 1);
-        last7.push(base.filter(function (x) { return x.accountId === a.id && x.firstRejectAt && x.firstRejectAt >= ds && x.firstRejectAt < de; }).length);
-      }
-      return {
-        acc: a,
-        campaigns: camps.length,
-        ads: ads.length,
-        rejects: rej.length,
-        rate: ads.length ? rej.length / ads.length : 0,
-        coverage: rej.length ? attributed / rej.length : 0,
-        spark: last7
-      };
-    }).filter(function (r) {
-      if (q && (r.acc.name + ' ' + r.acc.id + ' ' + r.acc.buyer + ' ' + r.acc.team).indexOf(q) < 0) return false;
-      if ((FILTERS.person || FILTERS.lang || FILTERS.drama || FILTERS.attr) && r.ads === 0 && r.rejects === 0) return false;
-      return true;
-    });
+    var groups = [];
+    if (GROUP_MODE === 'team') {
+      var seenTeams = {};
+      visibleAccounts().forEach(function (a) { seenTeams[a.team] = 1; });
+      groups = Object.keys(seenTeams).map(function (t) {
+        return { key: t, label: t, sub: '', pred: function (ad) { return ACCMAP[ad.accountId].team === t; } };
+      });
+    } else {
+      var seenBuyers = {};
+      visibleAccounts().forEach(function (a) { if (!seenBuyers[a.buyer]) seenBuyers[a.buyer] = a.team; });
+      groups = Object.keys(seenBuyers).map(function (b) {
+        return { key: b, label: b, sub: seenBuyers[b], pred: function (ad) { return ACCMAP[ad.accountId].buyer === b; } };
+      });
+    }
+    var narrow = FILTERS.person || FILTERS.lang || FILTERS.drama || FILTERS.attr || FILTERS.team;
+    var rows = groups.map(function (g) {
+      var m = groupMetrics(g.pred, range, base);
+      return { key: g.key, label: g.label, sub: g.sub, campaigns: m.campaigns, ads: m.ads, rejects: m.rejects, rate: m.rate, spark: m.spark };
+    }).filter(function (r) { return !narrow || r.ads > 0 || r.rejects > 0; });
     if (SORT.account === 'rate_desc') rows.sort(function (a, b) { return b.rate - a.rate || b.rejects - a.rejects; });
     else if (SORT.account === 'reject_desc') rows.sort(function (a, b) { return b.rejects - a.rejects; });
-    else if (SORT.account === 'ads_desc') rows.sort(function (a, b) { return b.ads - a.ads; });
-    else rows.sort(function (a, b) { return a.acc.name.localeCompare(b.acc.name, 'zh'); });
-    document.getElementById('accountCount').textContent = rows.length + ' 个账户 · ' + rangeText(range);
+    else rows.sort(function (a, b) { return b.ads - a.ads; });
+    document.getElementById('groupHead1').textContent = GROUP_MODE === 'team' ? '团队' : '投手';
+    document.getElementById('accountCount').textContent = rows.length + (GROUP_MODE === 'team' ? ' 个团队 · ' : ' 位投手 · ') + rangeText(range);
     var empty = document.getElementById('accountEmpty');
     var table = document.getElementById('accountTableWrap');
     if (!rows.length) { empty.hidden = false; table.hidden = true; return; }
     empty.hidden = true; table.hidden = false;
     document.getElementById('accountBody').innerHTML = rows.map(function (r) {
-      var status = r.acc.delayed ? '<span class="chip warn"><span class="ico">!</span>延迟 2h</span>' : (r.ads === 0 ? '<span class="chip muted">无数据</span>' : '<span class="chip good"><span class="ico">●</span>正常</span>');
       var bad = r.rate > 0.2 ? ' bad' : '';
-      return '<tr class="clickable" data-account="' + esc(r.acc.id) + '">' +
-        '<td><div class="cell-stack"><b title="' + esc(r.acc.name) + '">' + esc(r.acc.name) + '</b><span>' + esc(r.acc.id) + '</span></div></td>' +
-        '<td><div class="cell-stack"><b>' + esc(r.acc.team.replace('短剧投放', '')) + '</b><span>' + esc(r.acc.buyer) + '</span></div></td>' +
+      return '<tr class="clickable" data-group-key="' + esc(r.key) + '">' +
+        '<td><div class="cell-stack"><b>' + esc(r.label) + '</b>' + (r.sub ? '<span>' + esc(r.sub) + '</span>' : '') + '</div></td>' +
         '<td class="ta-r">' + fmt(r.campaigns) + '</td>' +
         '<td class="ta-r">' + fmt(r.ads) + '</td>' +
         '<td class="ta-r">' + fmt(r.rejects) + '</td>' +
         '<td class="ta-r"><span class="meter"><span class="meter-track"><span class="meter-fill' + bad + '" style="width:' + Math.min(100, r.rate * 100 / 0.35) + '%"></span></span><span>' + pct(r.rate) + '</span></span></td>' +
         '<td class="spark-cell">' + sparklineSvg(r.spark, r.rate > 0.2 ? RED : BLUE) + '</td>' +
-        '<td>' + status + '</td>' +
         '</tr>';
     }).join('');
   }
@@ -1097,27 +1087,40 @@ tbody tr.clickable:hover{background:#fafaf6}
   function renderMaterials() {
     var range = getRange();
     var base = baseAds();
-    var present = {};
-    base.forEach(function (a) { if (a.materialId) present[a.materialId] = 1; });
-    var mats = visibleMaterials().filter(function (m) { return !!present[m.id]; });
-    var q = SEARCH.material.trim();
-    var rows = mats.map(function (m) {
-      var ads = base.filter(function (x) { return x.materialId === m.id && inRange(x.createdAt, range); });
-      var rej = base.filter(function (x) { return x.materialId === m.id && x.firstRejectAt && inRange(x.firstRejectAt, range); });
-      if (FILTERS.reason) rej = rej.filter(function (x) { return x.reasons.indexOf(FILTERS.reason) >= 0; });
+    var groups = [];
+    if (GROUP_MODE === 'team') {
+      var seenTeams = {};
+      base.forEach(function (a) {
+        if (a.materialId) seenTeams[MATMAP[a.materialId].editorTeam] = 1;
+      });
+      groups = Object.keys(seenTeams).map(function (t) {
+        return { key: t, label: t, sub: '', matPred: function (m) { return m.editorTeam === t; } };
+      });
+    } else {
+      var seenEditors = {};
+      base.forEach(function (a) {
+        if (a.materialId) {
+          var m = MATMAP[a.materialId];
+          seenEditors[m.editor] = m.editorTeam;
+        }
+      });
+      groups = Object.keys(seenEditors).map(function (e) {
+        return { key: e, label: e, sub: seenEditors[e], matPred: function (m) { return m.editor === e; } };
+      });
+    }
+    var rows = groups.map(function (g) {
+      var ads = base.filter(function (a) { return a.materialId && g.matPred(MATMAP[a.materialId]) && inRange(a.createdAt, range); });
+      var rej = base.filter(function (a) { return a.materialId && g.matPred(MATMAP[a.materialId]) && a.firstRejectAt && inRange(a.firstRejectAt, range); });
       var counts = {};
-      rej.forEach(function (x) { if (x.reasons[0]) counts[x.reasons[0]] = (counts[x.reasons[0]] || 0) + 1; });
+      rej.forEach(function (a) { if (a.reasons[0]) counts[a.reasons[0]] = (counts[a.reasons[0]] || 0) + 1; });
       var reasons = Object.keys(counts).map(function (k) { return { text: k, count: counts[k] }; }).sort(function (a, b) { return b.count - a.count; });
-      var last = rej.reduce(function (acc, x) { return !acc || x.firstRejectAt > acc ? x.firstRejectAt : acc; }, null);
-      return { mat: m, ads: ads.length, rejects: rej.length, reasons: reasons, last: last };
-    }).filter(function (r) {
-      if (!q) return true;
-      return (r.mat.name + ' ' + r.mat.editor + ' ' + r.mat.drama).indexOf(q) >= 0;
-    });
-    if (SORT.material === 'reject_desc') rows.sort(function (a, b) { return b.rejects - a.rejects || a.mat.name.localeCompare(b.mat.name); });
-    else if (SORT.material === 'ads_desc') rows.sort(function (a, b) { return b.ads - a.ads; });
-    else rows.sort(function (a, b) { return a.mat.name.localeCompare(b.mat.name, 'zh'); });
-    document.getElementById('materialCount').textContent = rows.length + ' 个素材 · ' + rangeText(range);
+      var last = rej.reduce(function (acc, a) { return !acc || a.firstRejectAt > acc ? a.firstRejectAt : acc; }, null);
+      return { key: g.key, label: g.label, sub: g.sub, ads: ads.length, rejects: rej.length, reasons: reasons, last: last };
+    }).filter(function (r) { return r.ads > 0 || r.rejects > 0; });
+    if (SORT.material === 'reject_desc') rows.sort(function (a, b) { return b.rejects - a.rejects; });
+    else rows.sort(function (a, b) { return b.ads - a.ads; });
+    document.getElementById('groupHead2').textContent = GROUP_MODE === 'team' ? '剪辑团队' : '剪辑';
+    document.getElementById('materialCount').textContent = rows.length + (GROUP_MODE === 'team' ? ' 个团队 · ' : ' 位剪辑 · ') + rangeText(range);
     var empty = document.getElementById('materialEmpty');
     var table = document.getElementById('materialTableWrap');
     if (!rows.length) { empty.hidden = false; table.hidden = true; return; }
@@ -1126,14 +1129,13 @@ tbody tr.clickable:hover{background:#fafaf6}
       var main = r.reasons.length ? r.reasons[0].text : '—';
       var mini = '';
       if (r.reasons.length) {
-        var total = r.reasons.reduce(function (s, x) { return s + x.count; }, 0);
         mini = r.reasons.slice(0, 5).map(function (x) {
           return '<i style="flex:' + x.count + ' 1 0" data-tip="' + esc(x.text + ' · ' + x.count + ' 条') + '"></i>';
         }).join('');
       } else mini = '<span class="count-note">—</span>';
-      return '<tr class="clickable" data-material="' + esc(r.mat.id) + '">' +
-        '<td><div class="cell-stack"><b title="' + esc(r.mat.name) + '">' + esc(r.mat.name) + '</b><span>' + esc(r.mat.project) + ' · ' + esc(r.mat.lang) + ' · ' + esc(r.mat.drama) + '</span></div></td>' +
-        '<td><div class="cell-stack"><b>' + esc(r.mat.editor) + '</b><span>' + esc(r.mat.editorTeam) + '</span></div></td>' +
+      var clickable = GROUP_MODE === 'person' ? ' class="clickable" data-editor="' + esc(r.key) + '"' : '';
+      return '<tr' + clickable + '>' +
+        '<td><div class="cell-stack"><b>' + esc(r.label) + '</b>' + (r.sub ? '<span>' + esc(r.sub) + '</span>' : '') + '</div></td>' +
         '<td class="ta-r">' + fmt(r.ads) + '</td>' +
         '<td class="ta-r">' + fmt(r.rejects) + '</td>' +
         '<td title="' + esc(main) + '">' + esc(main) + '</td>' +
@@ -1143,32 +1145,26 @@ tbody tr.clickable:hover{background:#fafaf6}
     }).join('');
   }
 
-  /* ---------- 渲染：拒审明细与未归因 ---------- */
-  function adRow(a, withMaterial) {
+  /* ---------- 渲染：拒审明细 ---------- */
+  function adRow(a) {
     var acc = ACCMAP[a.accountId];
     var m = a.materialId ? MATMAP[a.materialId] : null;
     var camp = CAMPMAP[a.campaignId];
     var main = a.reasons.length ? a.reasons[0] : '—';
     var approx = a.createdAt < addDays(TODAY0, -LAUNCH_GAP);
-    var status = a.deleted ? '<span class="chip bad">已删除</span>' : '<span class="chip good"><span class="ico">●</span>正常</span>';
-    var matCell = withMaterial ? '' : '<td><div class="cell-stack"><b title="' + esc(m ? m.name : '未归因') + '">' + esc(m ? m.name : '未归因') + '</b><span>' + esc(m ? m.editor + ' · ' + m.editorTeam : '广告名称未匹配素材库') + '</span></div></td>';
-    var lang = m ? m.lang : acc.lang;
-    var proj = m ? m.project : '—';
-    var drama = m ? m.drama : '—';
-    return '<tr class="clickable" data-ad="' + esc(a.id) + '">' +
+    var matCell = '<td><div class="cell-stack"><b title="' + esc(m ? m.name : '未归因') + '">' + esc(m ? m.name : '未归因') + '</b><span>' + esc(m ? m.editor + ' · ' + m.editorTeam : '广告名称未匹配素材库') + '</span></div></td>';
+    return '<tr>' +
       '<td><div class="cell-stack"><b title="' + esc(a.name) + '">' + esc(a.name) + '</b><span>' + esc(camp ? camp.name : a.campaignId) + '</span></div></td>' +
       '<td><div class="cell-stack"><b>' + fmtDateTime(a.firstRejectAt) + '</b><span>' + (approx ? '历史近似' : '实时采集') + '</span></div></td>' +
       '<td title="' + esc(a.reasons.join(' / ')) + '">' + esc(main) + (a.reasons.length > 1 ? ' <span class="count-note">+' + (a.reasons.length - 1) + '</span>' : '') + '</td>' +
       '<td><div class="cell-stack"><b>' + esc(acc.name) + '</b><span>' + esc(acc.buyer) + '</span></div></td>' +
       matCell +
-      '<td><div class="cell-stack"><b>' + esc(proj) + ' · ' + esc(lang) + '</b><span>' + esc(drama) + '</span></div></td>' +
-      '<td>' + status + '</td>' +
+      '<td><button class="link-btn" data-detail-ad="' + esc(a.id) + '">详情</button></td>' +
       '</tr>';
   }
 
   function filteredRejects(range) {
     var base = baseAds().filter(function (a) { return a.firstRejectAt && inRange(a.firstRejectAt, range); });
-    if (FILTERS.reason) base = base.filter(function (a) { return a.reasons.indexOf(FILTERS.reason) >= 0; });
     return base.sort(function (a, b) { return b.firstRejectAt - a.firstRejectAt; });
   }
   function searchAds(ads, q) {
@@ -1185,11 +1181,6 @@ tbody tr.clickable:hover{background:#fafaf6}
     var range = getRange();
     var q = SEARCH.detail.trim();
     var rows = searchAds(filteredRejects(range), q);
-    var chip = document.getElementById('accountChip');
-    if (FILTERS.account && ACCMAP[FILTERS.account]) {
-      chip.hidden = false;
-      chip.innerHTML = '账户：' + esc(ACCMAP[FILTERS.account].name) + ' <button class="btn-ghost" style="height:18px;padding:0 5px;margin-left:4px" id="chipClear">移除</button>';
-    } else chip.hidden = true;
     var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
     PG.detail = clamp(PG.detail, 1, totalPages);
     var pageRows = rows.slice((PG.detail - 1) * PAGE_SIZE, PG.detail * PAGE_SIZE);
@@ -1197,7 +1188,7 @@ tbody tr.clickable:hover{background:#fafaf6}
     var empty = document.getElementById('detailEmpty');
     var table = document.querySelector('#sec-detail .table-wrap');
     if (!rows.length) { empty.hidden = false; table.hidden = true; } else { empty.hidden = true; table.hidden = false; }
-    document.getElementById('detailBody').innerHTML = pageRows.map(function (a) { return adRow(a, false); }).join('');
+    document.getElementById('detailBody').innerHTML = pageRows.map(function (a) { return adRow(a); }).join('');
     renderPager('detailPager', rows.length, PG.detail, totalPages, 'detail');
   }
   function renderPager(id, total, page, totalPages, key) {
@@ -1223,8 +1214,6 @@ tbody tr.clickable:hover{background:#fafaf6}
     document.getElementById('drawerMask').hidden = true;
     document.getElementById('drawer').hidden = true;
     document.body.style.overflow = '';
-    DRAWER_RETURN = null;
-    document.getElementById('drawerBack').hidden = true;
   }
   function openAdDrawer(id) {
     var a = ADMAP[id];
@@ -1233,30 +1222,24 @@ tbody tr.clickable:hover{background:#fafaf6}
     var m = a.materialId ? MATMAP[a.materialId] : null;
     var camp = CAMPMAP[a.campaignId];
     var approx = a.createdAt < addDays(TODAY0, -LAUNCH_GAP);
-    document.getElementById('drawerEyebrow').textContent = 'REJECTED AD / ' + a.id;
+    document.getElementById('drawerEyebrow').textContent = '拒审广告';
     document.getElementById('drawerTitle').textContent = a.name;
     document.getElementById('drawerHint').textContent = camp ? camp.name : a.campaignId;
-    var back = document.getElementById('drawerBack');
-    if (DRAWER_RETURN && DRAWER_RETURN.type === 'material') {
-      back.hidden = false;
-      back.setAttribute('data-back', DRAWER_RETURN.id);
-    } else back.hidden = true;
     var chips = '<span class="chip bad"><span class="ico">!</span>首次拒审 ' + fmtDateTime(a.firstRejectAt) + '</span>' +
-      (a.deleted ? '<span class="chip bad">已删除</span>' : '<span class="chip good"><span class="ico">●</span>正常</span>') +
       (approx ? '<span class="chip warn">历史近似</span>' : '') +
       (!m ? '<span class="chip warn">未归因</span>' : '');
     var reasons = a.reasons.map(function (r) {
-      return '<div class="reason-item"><div class="rt">' + esc(r) + '</div><div class="rs">Meta 原始拒审原因 · 按返回顺序</div></div>';
+      return '<div class="reason-item"><div class="rt">' + esc(r) + '</div><div class="rs">平台原始拒审原因 · 按返回顺序</div></div>';
     }).join('');
+    var preview = m ? '<img class="preview-img" src="assets/materials/' + esc(m.id) + '.svg" alt="本地素材预览">' : '<div class="preview-empty">未归因素材，无本地预览</div>';
     var body = '<div style="display:flex;gap:6px;flex-wrap:wrap">' + chips + '</div>' +
       '<div class="meta-grid">' +
       metaItem('账户', acc.name) + metaItem('投手 / 团队', acc.buyer + ' · ' + acc.team.replace('短剧投放', '')) +
-      metaItem('Campaign', camp ? camp.name : a.campaignId) + metaItem('创建时间', fmtDateTime(a.createdAt)) +
+      metaItem('广告计划', camp ? camp.name : a.campaignId) + metaItem('创建时间', fmtDateTime(a.createdAt)) +
       metaItem('素材', m ? m.name : '未归因') + metaItem('剪辑 / 团队', m ? m.editor + ' · ' + m.editorTeam : '—') +
-      metaItem('项目 / 语种 / 短剧', m ? m.project + ' · ' + m.lang + ' · ' + m.drama : '— · ' + acc.lang + ' · —') + metaItem('广告 ID', a.id) +
       '</div>' +
       '<div><div class="section-label">拒审原因 / ' + a.reasons.length + ' 条</div><div class="reason-list">' + reasons + '</div></div>' +
-      '<div><div class="section-label">创意预览</div><div class="preview"><div class="play">▶</div><div>创意预览占位</div><div class="ph">接入 META CREATIVE PREVIEW 后展示</div></div></div>' +
+      '<div><div class="section-label">本地素材库预览</div>' + preview + '</div>' +
       (!m ? '<div class="banner"><span class="bn-ico">!</span><div>该广告名称无法匹配素材归属系统。本期只展示，不提供认领；建议推动投手按素材命名规范命名广告。</div></div>' : '');
     document.getElementById('drawerBody').innerHTML = body;
     openDrawer();
@@ -1264,41 +1247,6 @@ tbody tr.clickable:hover{background:#fafaf6}
   function metaItem(k, v) {
     return '<div class="meta-item"><div class="k">' + esc(k) + '</div><div class="v">' + esc(v == null ? '—' : v) + '</div></div>';
   }
-  function openMaterialDrawer(id, keepReturn) {
-    var m = MATMAP[id];
-    if (!m) return;
-    var range = getRange();
-    var ads = baseAds().filter(function (a) { return a.materialId === id && inRange(a.createdAt, range); });
-    var rej = baseAds().filter(function (a) { return a.materialId === id && a.firstRejectAt && inRange(a.firstRejectAt, range); });
-    if (FILTERS.reason) rej = rej.filter(function (a) { return a.reasons.indexOf(FILTERS.reason) >= 0; });
-    var counts = {};
-    rej.forEach(function (a) { if (a.reasons[0]) counts[a.reasons[0]] = (counts[a.reasons[0]] || 0) + 1; });
-    var reasonRows = Object.keys(counts).map(function (k) { return { text: k, count: counts[k] }; }).sort(function (a, b) { return b.count - a.count; });
-    var total = reasonRows.reduce(function (s, r) { return s + r.count; }, 0);
-    var bars = reasonRows.length ? reasonRows.map(function (r) {
-      return '<div class="rank-row" style="grid-template-columns:minmax(90px,1fr) minmax(50px,1fr) 42px"><span class="rank-name" title="' + esc(r.text) + '">' + esc(r.text) + '</span><span class="rank-track"><span class="rank-fill" style="width:' + Math.max(3, r.count / reasonRows[0].count * 100) + '%"></span></span><span class="rank-num">' + r.count + '</span></div>';
-    }).join('') : '<div class="anomaly-empty">当前范围没有拒审</div>';
-    document.getElementById('drawerEyebrow').textContent = 'MATERIAL / ' + m.id;
-    document.getElementById('drawerTitle').textContent = m.name;
-    document.getElementById('drawerHint').textContent = m.editor + ' · ' + m.editorTeam;
-    document.getElementById('drawerBack').hidden = true;
-    var latest = rej.slice().sort(function (a, b) { return b.firstRejectAt - a.firstRejectAt; }).slice(0, 8);
-    var links = latest.map(function (a) {
-      return '<button class="ad-link" data-ad="' + esc(a.id) + '"><span class="t">' + esc(a.name) + '</span><span class="d">' + fmtDayTime(a.firstRejectAt) + '</span></button>';
-    }).join('');
-    var body = '<div class="meta-grid">' +
-      metaItem('剪辑人', m.editor) + metaItem('团队', m.editorTeam) +
-      metaItem('项目 / 语种', m.project + ' · ' + m.lang) + metaItem('短剧', m.drama) +
-      metaItem('当期投放广告', fmt(ads.length) + ' 条') + metaItem('当期拒审', fmt(rej.length) + ' 次 · ' + pct(ads.length ? rej.length / ads.length : 0)) +
-      '</div>' +
-      '<div><div class="section-label">拒审原因分布 / 共 ' + total + ' 次</div>' + bars + '</div>' +
-      '<div><div class="section-label">近期拒审广告</div><div class="ad-links">' + (links || '<div class="anomaly-empty">当前范围没有拒审广告</div>') + '</div></div>' +
-      '<div><div class="section-label">素材预览</div><div class="preview"><div class="play">▶</div><div>素材预览占位</div><div class="ph">接入素材归属系统后展示</div></div></div>';
-    document.getElementById('drawerBody').innerHTML = body;
-    if (!keepReturn) DRAWER_RETURN = null;
-    openDrawer();
-  }
-
   /* ---------- 提示浮层 ---------- */
   function showTip(text, x, y) {
     var tip = document.getElementById('tip');
@@ -1312,11 +1260,9 @@ tbody tr.clickable:hover{background:#fafaf6}
 
   /* ---------- 事件 ---------- */
   function resetFilters() {
-    FILTERS = { team: '', person: '', lang: '', drama: '', attr: '', account: '' };
-    SEARCH = { account: '', material: '', detail: '' };
+    FILTERS = { team: '', person: '', lang: '', drama: '', attr: '' };
+    SEARCH = { detail: '' };
     PG = { detail: 1 };
-    document.getElementById('accountSearch').value = '';
-    document.getElementById('materialSearch').value = '';
     document.getElementById('detailSearch').value = '';
     ['fTeam', 'fPerson', 'fLang', 'fDrama', 'fAttr'].forEach(function (id) { var el = document.getElementById(id); if (el) el.value = ''; });
   }
@@ -1362,26 +1308,39 @@ tbody tr.clickable:hover{background:#fafaf6}
     document.getElementById('fTo').addEventListener('change', function (e) { CUSTOM.to = e.target.value; renderAll(); });
     document.getElementById('btnClearFilters').addEventListener('click', function () { resetFilters(); syncFilterOptions(); renderAll(); });
     document.querySelectorAll('[data-clear]').forEach(function (b) { b.addEventListener('click', function () { resetFilters(); syncFilterOptions(); renderAll(); }); });
-    document.getElementById('accountSearch').addEventListener('input', debounce(function (e) { SEARCH.account = e.target.value; renderAccounts(); }, 120));
-    document.getElementById('materialSearch').addEventListener('input', debounce(function (e) { SEARCH.material = e.target.value; renderMaterials(); }, 120));
     document.getElementById('detailSearch').addEventListener('input', debounce(function (e) { SEARCH.detail = e.target.value; PG.detail = 1; renderDetail(); }, 120));
     document.getElementById('accountSort').addEventListener('change', function (e) { SORT.account = e.target.value; renderAccounts(); });
     document.getElementById('materialSort').addEventListener('change', function (e) { SORT.material = e.target.value; renderMaterials(); });
+    document.getElementById('groupMode').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-group]');
+      if (!b) return;
+      GROUP_MODE = b.getAttribute('data-group');
+      var btns = this.querySelectorAll('button');
+      for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-group') === GROUP_MODE);
+      renderAccounts();
+      renderMaterials();
+    });
     document.getElementById('accountBody').addEventListener('click', function (e) {
-      var tr = e.target.closest('tr[data-account]');
+      var tr = e.target.closest('tr[data-group-key]');
       if (!tr) return;
-      FILTERS.account = tr.getAttribute('data-account');
+      var key = tr.getAttribute('data-group-key');
+      if (GROUP_MODE === 'team') FILTERS.team = key;
+      else FILTERS.person = key;
       PG.detail = 1;
       renderAll();
       goSection('sec-detail');
     });
     document.getElementById('materialBody').addEventListener('click', function (e) {
-      var tr = e.target.closest('tr[data-material]');
-      if (tr) openMaterialDrawer(tr.getAttribute('data-material'));
+      var tr = e.target.closest('tr[data-editor]');
+      if (!tr) return;
+      FILTERS.person = tr.getAttribute('data-editor');
+      PG.detail = 1;
+      renderAll();
+      goSection('sec-detail');
     });
     document.getElementById('detailBody').addEventListener('click', function (e) {
-      var tr = e.target.closest('tr[data-ad]');
-      if (tr) { DRAWER_RETURN = null; openAdDrawer(tr.getAttribute('data-ad')); }
+      var b = e.target.closest('[data-detail-ad]');
+      if (b) openAdDrawer(b.getAttribute('data-detail-ad'));
     });
     document.getElementById('detailPager').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-pg]');
@@ -1390,33 +1349,6 @@ tbody tr.clickable:hover{background:#fafaf6}
     });
     document.getElementById('drawerClose').addEventListener('click', closeDrawer);
     document.getElementById('drawerMask').addEventListener('click', closeDrawer);
-    document.getElementById('drawerBack').addEventListener('click', function () {
-      var id = this.getAttribute('data-back');
-      if (id) { DRAWER_RETURN = null; openMaterialDrawer(id); }
-    });
-    document.getElementById('drawerBody').addEventListener('click', function (e) {
-      var b = e.target.closest('[data-ad]');
-      if (!b) return;
-      var mid = null;
-      if (DRAWER_RETURN && DRAWER_RETURN.type === 'material') mid = DRAWER_RETURN.id;
-      else {
-        var title = document.getElementById('drawerTitle').textContent;
-        var found = MATERIALS.filter(function (m) { return m.name === title; })[0];
-        if (found) mid = found.id;
-      }
-      if (mid) DRAWER_RETURN = { type: 'material', id: mid };
-      openAdDrawer(b.getAttribute('data-ad'));
-    });
-    document.getElementById('drawerBody').addEventListener('click', function (e) {
-      if (e.target && e.target.id === 'chipClear') { /* handled elsewhere */ }
-    });
-    document.addEventListener('click', function (e) {
-      if (e.target && e.target.id === 'chipClear') {
-        FILTERS.account = '';
-        PG.detail = 1;
-        renderAll();
-      }
-    });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') { closeDrawer(); hideTip(); }
     });
