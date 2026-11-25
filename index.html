@@ -94,7 +94,7 @@ h1{font-size:20px;line-height:1.3;margin:4px 0 2px;font-weight:600;letter-spacin
 .delta.bad{color:var(--red)}
 .delta.none{color:var(--muted)}
 .spark{height:30px;width:56px;flex:0 0 56px;margin-left:auto}
-.mini-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.mini-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .mini{border:1px solid var(--line);border-radius:4px;padding:10px 12px 4px;background:var(--surface);min-width:0}
 .mini-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-height:36px}
 .mini-title{font-size:12px;color:var(--text);margin-top:2px}
@@ -229,10 +229,8 @@ tbody tr.clickable:hover{background:#fafaf6}
     </div>
     <nav class="nav" id="nav" aria-label="主导航">
       <button class="nav-item active" data-page="overview"><span class="nav-ini">总</span><span class="nav-dot"></span><span class="nav-text">总览</span></button>
-      <button class="nav-item" data-page="accounts"><span class="nav-ini">账</span><span class="nav-dot"></span><span class="nav-text">账户与投手</span></button>
-      <button class="nav-item" data-page="materials"><span class="nav-ini">素</span><span class="nav-dot"></span><span class="nav-text">素材与剪辑</span></button>
+      <button class="nav-item" data-page="team"><span class="nav-ini">团</span><span class="nav-dot"></span><span class="nav-text">团队和人员</span></button>
       <button class="nav-item" data-page="detail"><span class="nav-ini">拒</span><span class="nav-dot"></span><span class="nav-text">拒审明细</span></button>
-      <button class="nav-item" data-page="unattributed"><span class="nav-ini">未</span><span class="nav-dot"></span><span class="nav-text">未归因池</span><span class="nav-badge" id="navUnattrCount">0</span></button>
     </nav>
     <div class="rail-foot">
       <div class="rail-label">视角 / ROLE</div>
@@ -240,7 +238,7 @@ tbody tr.clickable:hover{background:#fafaf6}
       <div class="scope-note" id="scopeNote">全量账户 · 全量素材</div>
       <div class="fresh" id="freshBox">
         <span class="fresh-dot"></span>
-        <span>数据更新至 <b id="freshTime">--:--</b><br>每小时采集 · <span id="freshState">正常</span></span>
+        <span>数据更新至 <b id="freshTime">--:--</b><br>每小时采集</span>
       </div>
     </div>
   </aside>
@@ -253,7 +251,6 @@ tbody tr.clickable:hover{background:#fafaf6}
       </div>
       <div class="top-meta">
         <span class="chip info" id="rangeChip">--</span>
-        <span class="chip good" id="dataStateChip"><span class="ico">●</span>数据已定型</span>
       </div>
     </header>
     <div class="filters" id="filterBar">
@@ -268,12 +265,9 @@ tbody tr.clickable:hover{background:#fafaf6}
         <input type="date" id="fFrom" aria-label="开始日期"><span class="count-note">至</span><input type="date" id="fTo" aria-label="结束日期">
       </div>
       <div class="f-item"><span>团队</span><select id="fTeam" aria-label="团队"></select></div>
-      <div class="f-item"><span>投手</span><select id="fBuyer" aria-label="投手"></select></div>
-      <div class="f-item"><span>剪辑</span><select id="fEditor" aria-label="剪辑人"></select></div>
-      <div class="f-item"><span>项目</span><select id="fProject" aria-label="项目"></select></div>
+      <div class="f-item"><span>人员</span><select id="fPerson" aria-label="人员"></select></div>
       <div class="f-item"><span>语种</span><select id="fLang" aria-label="语种"></select></div>
       <div class="f-item"><span>短剧</span><select id="fDrama" aria-label="短剧"></select></div>
-      <div class="f-item"><span>原因</span><select id="fReason" aria-label="拒审原因"></select></div>
       <div class="f-item"><span>归因</span><select id="fAttr" aria-label="归因状态"></select></div>
       <button class="btn-ghost" id="btnClearFilters">清除筛选</button>
     </div>
@@ -284,26 +278,16 @@ tbody tr.clickable:hover{background:#fafaf6}
         <section class="card">
           <div class="card-head">
             <div><div class="eyebrow">TREND</div><h2 id="trendTitle">趋势</h2><div class="hint" id="trendHint">按自然日聚合</div></div>
-            <div class="seg small" id="trendMode" role="group" aria-label="趋势视图">
-              <button data-mode="chart" class="active">图表</button><button data-mode="table">表格</button>
-            </div>
           </div>
           <div class="mini-grid" id="trendGrid"></div>
-          <div class="trend-table" id="trendTable" hidden></div>
         </section>
-        <div class="overview-lower">
-          <section class="card">
-            <div class="card-head"><div><div class="eyebrow">REJECT REASONS</div><h2>拒审原因分布</h2><div class="hint">按 Meta 原始原因聚合，主因取第一条</div></div><span class="chip muted" id="reasonTotal">--</span></div>
-            <div class="band" id="reasonBand"></div>
-            <div class="rank" id="reasonRank"></div>
-          </section>
-          <section class="card">
-            <div class="card-head"><div><div class="eyebrow">ATTENTION</div><h2>异常高亮</h2><div class="hint" id="anomalyHint">固定阈值 20% / 未归因 10 / 环比 +50%</div></div><div style="display:flex;gap:6px;align-items:center"><button class="btn-ghost" id="btnThreshold" hidden>阈值设置</button><span class="chip warn" id="anomalyCount">0</span></div></div>
-            <div class="anomaly-list" id="anomalyList"></div>
-          </section>
-        </div>
+        <section class="card">
+          <div class="card-head"><div><div class="eyebrow">REJECT REASONS</div><h2>拒审原因分布</h2><div class="hint">按 Meta 原始原因聚合，主因取第一条</div></div><span class="chip muted" id="reasonTotal">--</span></div>
+          <div class="band" id="reasonBand"></div>
+          <div class="rank" id="reasonRank"></div>
+        </section>
       </section>
-      <section class="page-container" id="page-accounts">
+      <section class="page-container" id="page-team">
         <section class="card">
           <div class="toolbar">
             <div class="search"><input id="accountSearch" placeholder="搜索账户、投手或团队" aria-label="搜索账户"></div>
@@ -315,17 +299,15 @@ tbody tr.clickable:hover{background:#fafaf6}
             </select>
             <span class="count-note" id="accountCount">--</span>
           </div>
-          <div class="table-wrap">
+          <div class="table-wrap" id="accountTableWrap">
             <table aria-label="账户与投手">
-              <colgroup><col style="width:19%"><col style="width:14%"><col style="width:10%"><col style="width:10%"><col style="width:10%"><col style="width:11%"><col style="width:10%"><col style="width:10%"><col style="width:6%"></colgroup>
-              <thead><tr><th>账户</th><th>团队 / 投手</th><th class="ta-r">计划基建</th><th class="ta-r">广告基建</th><th class="ta-r">拒审次数</th><th class="ta-r">拒审率</th><th class="ta-r">归因覆盖</th><th>近 7 日拒审</th><th>状态</th></tr></thead>
+              <colgroup><col style="width:21%"><col style="width:15%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:10%"><col style="width:11%"><col style="width:10%"></colgroup>
+              <thead><tr><th>账户</th><th>团队 / 投手</th><th class="ta-r">计划基建</th><th class="ta-r">广告基建</th><th class="ta-r">拒审次数</th><th class="ta-r">拒审率</th><th>近 7 日拒审</th><th>状态</th></tr></thead>
               <tbody id="accountBody"></tbody>
             </table>
           </div>
           <div class="empty" id="accountEmpty" hidden><h3>没有匹配的账户</h3><p>当前筛选或搜索条件下没有账户数据，试试放宽条件。</p><button class="btn line" data-clear>清除筛选</button></div>
         </section>
-      </section>
-      <section class="page-container" id="page-materials">
         <section class="card">
           <div class="toolbar">
             <div class="search"><input id="materialSearch" placeholder="搜索素材、剪辑人或短剧" aria-label="搜索素材"></div>
@@ -336,7 +318,7 @@ tbody tr.clickable:hover{background:#fafaf6}
             </select>
             <span class="count-note" id="materialCount">--</span>
           </div>
-          <div class="table-wrap">
+          <div class="table-wrap" id="materialTableWrap">
             <table aria-label="素材与剪辑">
               <colgroup><col style="width:30%"><col style="width:15%"><col style="width:10%"><col style="width:10%"><col style="width:19%"><col style="width:12%"><col style="width:4%"></colgroup>
               <thead><tr><th>素材</th><th>剪辑 / 团队</th><th class="ta-r">投放广告</th><th class="ta-r">拒审次数</th><th>主因</th><th class="ta-r">原因分布</th><th>最近</th></tr></thead>
@@ -362,25 +344,6 @@ tbody tr.clickable:hover{background:#fafaf6}
           </div>
           <div class="empty" id="detailEmpty" hidden><h3>没有拒审明细</h3><p>当前筛选条件下没有拒审广告，试试切换日期或清除筛选。</p><button class="btn line" data-clear>清除筛选</button></div>
           <div class="pager" id="detailPager"></div>
-        </section>
-      </section>
-      <section class="page-container" id="page-unattributed">
-        <div class="banner"><span class="bn-ico">!</span><div><b>未归因只展示、不认领。</b>广告名称中提取不到素材名，或素材名在素材归属系统中不存在时进入这里。本期不提供人工修正，推动上游规范广告名称或补齐素材库即可自然减少。</div></div>
-        <section class="card">
-          <div class="toolbar">
-            <div class="summary-row" id="unattrSummary"></div>
-            <span class="grow"></span>
-            <div class="search"><input id="unattrSearch" placeholder="搜索广告或账户" aria-label="搜索未归因广告"></div>
-          </div>
-          <div class="table-wrap">
-            <table aria-label="未归因拒审广告">
-              <colgroup><col style="width:28%"><col style="width:14%"><col style="width:16%"><col style="width:16%"><col style="width:14%"><col style="width:12%"></colgroup>
-              <thead><tr><th>广告</th><th>首次拒审</th><th>主因</th><th>账户 / 投手</th><th>项目 / 语种</th><th>状态</th></tr></thead>
-              <tbody id="unattrBody"></tbody>
-            </table>
-          </div>
-          <div class="empty" id="unattrEmpty" hidden><h3>没有未归因拒审</h3><p>当前范围内所有拒审广告都已完成素材归因，或筛选条件下没有数据。</p><button class="btn line" data-clear>清除筛选</button></div>
-          <div class="pager" id="unattrPager"></div>
         </section>
       </section>
     </div>
@@ -605,22 +568,18 @@ tbody tr.clickable:hover{background:#fafaf6}
   var PAGE = 'overview';
   var ROLE = 'admin';
   var PRESET = 'yesterday';
-  var TREND_MODE = 'chart';
   var CUSTOM = { from: fmtDate(addDays(TODAY0, -6)), to: fmtDate(TODAY0) };
-  var FILTERS = { team: '', buyer: '', editor: '', project: '', lang: '', drama: '', reason: '', attr: '', account: '' };
-  var SEARCH = { account: '', material: '', detail: '', unattr: '' };
+  var FILTERS = { team: '', person: '', lang: '', drama: '', attr: '', account: '' };
+  var SEARCH = { account: '', material: '', detail: '' };
   var SORT = { account: 'rate_desc', material: 'reject_desc' };
-  var PG = { detail: 1, unattr: 1 };
+  var PG = { detail: 1 };
   var PAGE_SIZE = 20;
   var DRAWER_RETURN = null;
-  var THRESH = { rate: 20, unattr: 10, rise: 50, overrides: {} };
 
   var PAGES = {
     overview: { eyebrow: 'OVERVIEW', title: '拒审态势', sub: 'Meta 渠道基建与拒审概览' },
-    accounts: { eyebrow: 'ACCOUNTS', title: '账户与投手', sub: '按账户聚合基建量与拒审表现' },
-    materials: { eyebrow: 'MATERIALS', title: '素材与剪辑', sub: '拒审素材与剪辑人归因' },
-    detail: { eyebrow: 'REJECTED ADS', title: '拒审明细', sub: '以广告为单位的拒审记录' },
-    unattributed: { eyebrow: 'UNATTRIBUTED', title: '未归因池', sub: '广告名称无法匹配素材归属' }
+    team: { eyebrow: 'TEAM & PEOPLE', title: '团队和人员', sub: '账户、投手与剪辑素材的基建与拒审' },
+    detail: { eyebrow: 'REJECTED ADS', title: '拒审明细', sub: '以广告为单位的拒审记录' }
   };
 
   /* ---------- 范围与筛选 ---------- */
@@ -665,9 +624,11 @@ tbody tr.clickable:hover{background:#fafaf6}
     var m = ad.materialId ? MATMAP[ad.materialId] : null;
     if (FILTERS.account && ad.accountId !== FILTERS.account) return false;
     if (FILTERS.team && acc.team !== FILTERS.team) return false;
-    if (FILTERS.buyer && acc.buyer !== FILTERS.buyer) return false;
-    if (FILTERS.editor && (!m || m.editor !== FILTERS.editor)) return false;
-    if (FILTERS.project && (!m || m.project !== FILTERS.project)) return false;
+    if (FILTERS.person) {
+      var asBuyer = acc.buyer === FILTERS.person;
+      var asEditor = !!m && m.editor === FILTERS.person;
+      if (!asBuyer && !asEditor) return false;
+    }
     if (FILTERS.lang && (!m || m.lang !== FILTERS.lang)) return false;
     if (FILTERS.drama && (!m || m.drama !== FILTERS.drama)) return false;
     if (FILTERS.attr === 'attributed' && !m) return false;
@@ -767,16 +728,13 @@ tbody tr.clickable:hover{background:#fafaf6}
   function syncFilterOptions() {
     var accs = visibleAccounts();
     var mats = visibleMaterials();
-    var teams = {}; var buyers = {}; var editors = {}; var projects = {}; var langs = {}; var dramas = {};
-    accs.forEach(function (a) { teams[a.team] = 1; buyers[a.buyer] = 1; });
-    mats.forEach(function (m) { editors[m.editor] = 1; projects[m.project] = 1; langs[m.lang] = 1; dramas[m.drama] = 1; });
+    var teams = {}; var persons = {}; var langs = {}; var dramas = {};
+    accs.forEach(function (a) { teams[a.team] = 1; persons[a.buyer] = 1; });
+    mats.forEach(function (m) { persons[m.editor] = 1; langs[m.lang] = 1; dramas[m.drama] = 1; });
     fillSelect('fTeam', Object.keys(teams).sort(), '全部团队', 'team');
-    fillSelect('fBuyer', Object.keys(buyers).sort(), '全部投手', 'buyer');
-    fillSelect('fEditor', Object.keys(editors).sort(), '全部剪辑', 'editor');
-    fillSelect('fProject', Object.keys(projects).sort(), '全部项目', 'project');
+    fillSelect('fPerson', Object.keys(persons).sort(), '全部人员', 'person');
     fillSelect('fLang', Object.keys(langs).sort(), '全部语种', 'lang');
     fillSelect('fDrama', Object.keys(dramas).sort(), '全部短剧', 'drama');
-    fillSelect('fReason', REASONS.map(function (r) { return r.text; }), '全部原因', 'reason');
     fillSelect('fAttr', [], '', 'attr');
     var attr = document.getElementById('fAttr');
     attr.innerHTML = '<option value="">全部归因</option><option value="attributed">已归因</option><option value="unattributed">未归因</option>';
@@ -813,22 +771,11 @@ tbody tr.clickable:hover{background:#fafaf6}
     else scope.innerHTML = '<b>' + esc(role.editorName) + '</b> 的素材<br>' + mats.length + ' 个素材可见';
     var upd = new Date(NOW); upd.setMinutes(0, 0, 0);
     document.getElementById('freshTime').textContent = fmtDayTime(upd);
-    var delayed = accs.filter(function (a) { return a.delayed; });
-    var fresh = document.getElementById('freshBox');
-    fresh.classList.toggle('warn', delayed.length > 0);
-    document.getElementById('freshState').textContent = delayed.length ? delayed.length + ' 个账户延迟' : '正常';
     var r = getRange();
     document.getElementById('rangeChip').textContent = rangeText(r);
-    var includesToday = r.start <= TODAY0 && r.end > TODAY0;
-    var chip = document.getElementById('dataStateChip');
-    if (includesToday) { chip.className = 'chip info'; chip.innerHTML = '<span class="ico">●</span>今日进行中'; }
-    else { chip.className = 'chip good'; chip.innerHTML = '<span class="ico">●</span>数据已定型'; }
     var segs = document.querySelectorAll('#dateSeg button');
     for (var k = 0; k < segs.length; k++) segs[k].classList.toggle('active', segs[k].getAttribute('data-preset') === PRESET);
     document.getElementById('customRange').hidden = PRESET !== 'custom';
-    var unattr = baseAds().filter(function (a) { return a.firstRejectAt && inRange(a.firstRejectAt, r) && !a.materialId; }).length;
-    document.getElementById('navUnattrCount').textContent = unattr;
-    document.getElementById('navUnattrCount').hidden = unattr === 0;
   }
 
   /* ---------- 渲染：总览 ---------- */
@@ -851,9 +798,7 @@ tbody tr.clickable:hover{background:#fafaf6}
       { label: '广告计划基建数', mono: 'BUILD / CAMPAIGN', value: fmt(cur.campaigns), unit: '个', cur: cur.campaigns, prev: prev.campaigns, isRate: false, goodUp: true, spark: series.campaigns, color: BLUE },
       { label: '广告基建数', mono: 'BUILD / AD', value: fmt(cur.ads), unit: '条', cur: cur.ads, prev: prev.ads, isRate: false, goodUp: true, spark: series.ads, color: BLUE },
       { label: '广告拒审次数', mono: 'REJECTED / ADS', value: fmt(cur.rejects), unit: '次', cur: cur.rejects, prev: prev.rejects, isRate: false, goodUp: false, spark: series.rejects, color: RED },
-      { label: '拒审广告率', mono: 'REJECT RATE', value: pct(cur.rate), unit: '', cur: cur.rate, prev: prev.rate, isRate: true, goodUp: false, spark: series.rates, color: RED },
-      { label: '有拒审 Campaign', mono: 'REJECTED / CAMPAIGN', value: fmt(cur.rejectedCampaigns), unit: '个', cur: cur.rejectedCampaigns, prev: prev.rejectedCampaigns, isRate: false, goodUp: false, spark: null, color: RED },
-      { label: '归因覆盖率', mono: 'ATTRIBUTION', value: pct(cur.coverage), unit: '', cur: cur.coverage, prev: prev.coverage, isRate: true, goodUp: true, spark: series.coverage, color: BLUE }
+      { label: '拒审广告率', mono: 'REJECT RATE', value: pct(cur.rate), unit: '', cur: cur.rate, prev: prev.rate, isRate: true, goodUp: false, spark: series.rates, color: RED }
     ];
     var html = '';
     defs.forEach(function (d, i) {
@@ -897,53 +842,91 @@ tbody tr.clickable:hover{background:#fafaf6}
     renderKpis(range, series);
     renderTrends(range, series);
     renderReasons(range);
-    renderAnomalies(range);
     var title = document.getElementById('trendTitle');
     var hint = document.getElementById('trendHint');
     if (isSingleDay(range)) { title.textContent = '分时趋势'; hint.textContent = '按小时聚合 · ' + fmtDate(range.start); }
     else { title.textContent = '日趋势'; hint.textContent = '按自然日聚合 · ' + rangeText(range); }
-    var th = threshFor(null);
-    document.getElementById('anomalyHint').textContent = '固定阈值 ' + th.rate + '% / 未归因 ' + th.unattr + ' / 环比 +' + th.rise + '%';
-    document.getElementById('btnThreshold').hidden = ROLE !== 'admin';
   }
   function renderNotices(range) {
+    var el = document.getElementById('notices');
     var items = [];
-    var includesToday = range.start <= TODAY0 && range.end > TODAY0;
-    if (includesToday) items.push({ cls: 'info', ico: '●', text: '今日数据进行中，截至 ' + pad(NOW.getHours()) + ':' + pad(NOW.getMinutes()) });
     if (range.start < addDays(TODAY0, -LAUNCH_GAP)) items.push({ cls: 'warn', ico: '≈', text: '含历史回补数据，首次拒审日期为近似值' });
-    var delayed = visibleAccounts().filter(function (a) { return a.delayed; });
-    if (delayed.length) items.push({ cls: 'warn', ico: '!', text: delayed.length + ' 个账户数据延迟，已使用上次成功采集结果' });
-    if (!items.length) items.push({ cls: 'good', ico: '✓', text: '数据完整，无延迟账户' });
-    document.getElementById('notices').innerHTML = items.map(function (i) {
+    el.hidden = items.length === 0;
+    el.innerHTML = items.map(function (i) {
       return '<span class="chip ' + i.cls + '"><span class="ico">' + i.ico + '</span>' + esc(i.text) + '</span>';
     }).join('');
   }
 
   function renderTrends(range, series) {
     var grid = document.getElementById('trendGrid');
-    var table = document.getElementById('trendTable');
-    grid.hidden = TREND_MODE !== 'chart';
-    table.hidden = TREND_MODE !== 'table';
-    var defs = [
-      { key: 'campaigns', eyebrow: 'BUILD / CAMPAIGN', title: '广告计划基建数', color: BLUE, unit: ' 个' },
-      { key: 'ads', eyebrow: 'BUILD / AD', title: '广告基建数', color: BLUE, unit: ' 条' },
-      { key: 'rejects', eyebrow: 'REJECTED / ADS', title: '广告拒审次数', color: RED, unit: ' 次' }
-    ];
+    var lastC = series.campaigns[series.campaigns.length - 1] || 0;
+    var lastA = series.ads[series.ads.length - 1] || 0;
+    var lastR = series.rejects[series.rejects.length - 1] || 0;
     var gg = '';
-    defs.forEach(function (d) {
-      var vals = series[d.key];
-      gg += '<div class="mini"><div class="mini-head"><div><div class="eyebrow">' + d.eyebrow + '</div><div class="mini-title">' + d.title + '</div></div><div class="mini-value">' + fmt(vals[vals.length - 1] || 0) + '</div></div><div class="chart" id="chart-' + d.key + '"></div></div>';
-    });
+    gg += '<div class="mini"><div class="mini-head"><div><div class="eyebrow">BUILD / CAMPAIGN</div><div class="mini-title">广告计划基建数</div></div><div class="mini-value">' + fmt(lastC) + '</div></div><div class="chart" id="chart-campaigns"></div></div>';
+    gg += '<div class="mini"><div class="mini-head"><div><div class="eyebrow">BUILD &amp; REJECT</div><div class="mini-title">广告基建数 / 拒审次数</div></div><div class="mini-value">' + fmt(lastA) + ' <span style="color:var(--muted);font-weight:400">/</span> ' + fmt(lastR) + '</div></div>' +
+      '<div class="legend"><span><i style="background:' + BLUE + '"></i>广告基建数 · 左轴</span><span><i style="background:' + RED + '"></i>拒审次数 · 右轴</span></div>' +
+      '<div class="chart" id="chart-dual"></div></div>';
     grid.innerHTML = gg;
-    defs.forEach(function (d) {
-      drawLineChart(document.getElementById('chart-' + d.key), series[d.key], series.labels, d.color, d.unit);
+    drawLineChart(document.getElementById('chart-campaigns'), series.campaigns, series.labels, BLUE, ' 个');
+    drawDualAxisChart(document.getElementById('chart-dual'), series.ads, series.rejects, series.labels);
+  }
+
+  function drawDualAxisChart(el, ads, rejects, labels) {
+    if (!el) return;
+    if (!ads.length) { el.innerHTML = '<div class="anomaly-empty">当前范围没有数据</div>'; return; }
+    var w = Math.max(el.clientWidth || 0, 260), h = 132;
+    var padL = 34, padR = 38, padT = 12, padB = 24;
+    var plotW = w - padL - padR, plotH = h - padT - padB;
+    var maxA = niceMax(Math.max.apply(null, ads.concat([0])));
+    var maxB = niceMax(Math.max.apply(null, rejects.concat([0])));
+    var n = ads.length;
+    var stepX = n > 1 ? plotW / (n - 1) : 0;
+    function x(i) { return padL + stepX * i; }
+    function yA(v) { return padT + plotH - (v / maxA) * plotH; }
+    function yB(v) { return padT + plotH - (v / maxB) * plotH; }
+    var lineA = ads.map(function (v, i) { return x(i).toFixed(1) + ',' + yA(v).toFixed(1); }).join(' ');
+    var lineB = rejects.map(function (v, i) { return x(i).toFixed(1) + ',' + yB(v).toFixed(1); }).join(' ');
+    var grid = '';
+    [0, 0.5, 1].forEach(function (t) {
+      var gy = padT + plotH - t * plotH;
+      grid += '<line x1="' + padL + '" y1="' + gy.toFixed(1) + '" x2="' + (w - padR) + '" y2="' + gy.toFixed(1) + '" stroke="#e1e0d9" stroke-width="1"></line>';
+      grid += '<text x="' + (padL - 6) + '" y="' + (gy + 3.5).toFixed(1) + '" text-anchor="end" font-size="9" fill="#898781">' + fmt(Math.round(maxA * t)) + '</text>';
+      grid += '<text x="' + (w - padR + 6) + '" y="' + (gy + 3.5).toFixed(1) + '" text-anchor="start" font-size="9" fill="#898781">' + fmt(Math.round(maxB * t)) + '</text>';
     });
-    var th = '<table><thead><tr><th>时段</th><th class="ta-r">计划基建</th><th class="ta-r">广告基建</th><th class="ta-r">拒审次数</th><th class="ta-r">拒审率</th></tr></thead><tbody>';
-    for (var i = series.labels.length - 1; i >= 0; i--) {
-      th += '<tr><td>' + esc(series.labels[i]) + '</td><td class="ta-r">' + fmt(series.campaigns[i]) + '</td><td class="ta-r">' + fmt(series.ads[i]) + '</td><td class="ta-r">' + fmt(series.rejects[i]) + '</td><td class="ta-r">' + pct(series.rates[i]) + '</td></tr>';
+    var xlab = '';
+    var step = Math.max(1, Math.ceil(n / 5));
+    for (var i = 0; i < n; i += step) {
+      xlab += '<text x="' + x(i).toFixed(1) + '" y="' + (h - 6) + '" text-anchor="middle" font-size="9" fill="#898781">' + esc(labels[i]) + '</text>';
     }
-    th += '</tbody></table>';
-    table.innerHTML = th;
+    var endA = ads[n - 1] || 0, endB = rejects[n - 1] || 0;
+    var endLabelA = '<text x="' + (x(n - 1) - 7).toFixed(1) + '" y="' + (yA(endA) + 3.5).toFixed(1) + '" text-anchor="end" font-size="10" fill="#565550">' + fmt(endA) + '</text>';
+    var endLabelB = '<text x="' + (x(n - 1) + 7).toFixed(1) + '" y="' + (yB(endB) + 3.5).toFixed(1) + '" text-anchor="start" font-size="10" fill="#565550">' + fmt(endB) + '</text>';
+    var svg = '<svg width="' + w + '" height="' + h + '" role="img" aria-label="广告基建数与拒审次数双轴趋势图">' +
+      grid +
+      '<polyline points="' + lineA + '" fill="none" stroke="' + BLUE + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>' +
+      '<polyline points="' + lineB + '" fill="none" stroke="' + RED + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>' +
+      '<circle cx="' + x(n - 1).toFixed(1) + '" cy="' + yA(endA).toFixed(1) + '" r="3.5" fill="' + BLUE + '" stroke="#fcfcfb" stroke-width="2"></circle>' +
+      '<circle cx="' + x(n - 1).toFixed(1) + '" cy="' + yB(endB).toFixed(1) + '" r="3.5" fill="' + RED + '" stroke="#fcfcfb" stroke-width="2"></circle>' +
+      endLabelA + endLabelB + xlab +
+      '<g class="cross" style="display:none"><line y1="' + padT + '" y2="' + (padT + plotH) + '" stroke="#c3c2b7" stroke-width="1"></line><circle class="dotA" r="3.5" fill="' + BLUE + '" stroke="#fcfcfb" stroke-width="2"></circle><circle class="dotB" r="3.5" fill="' + RED + '" stroke="#fcfcfb" stroke-width="2"></circle></g>' +
+      '<rect class="hit" x="' + padL + '" y="' + padT + '" width="' + plotW + '" height="' + plotH + '" fill="transparent"></rect>' +
+      '</svg>';
+    el.innerHTML = svg;
+    var svgEl = el.querySelector('svg');
+    var cross = svgEl.querySelector('.cross');
+    var hit = svgEl.querySelector('.hit');
+    hit.addEventListener('mousemove', function (ev) {
+      var rect = svgEl.getBoundingClientRect();
+      var idx = clamp(Math.round((ev.clientX - rect.left - padL) / (stepX || 1)), 0, n - 1);
+      cross.style.display = '';
+      var line = cross.querySelector('line');
+      line.setAttribute('x1', x(idx)); line.setAttribute('x2', x(idx));
+      var da = cross.querySelector('.dotA'); da.setAttribute('cx', x(idx)); da.setAttribute('cy', yA(ads[idx]));
+      var db = cross.querySelector('.dotB'); db.setAttribute('cx', x(idx)); db.setAttribute('cy', yB(rejects[idx]));
+      showTip('广告 ' + fmt(ads[idx]) + ' · 拒审 ' + fmt(rejects[idx]) + ' · ' + labels[idx], ev.clientX, ev.clientY);
+    });
+    hit.addEventListener('mouseleave', function () { cross.style.display = 'none'; hideTip(); });
   }
 
   function niceMax(v) {
@@ -1043,82 +1026,6 @@ tbody tr.clickable:hover{background:#fafaf6}
     rank.innerHTML = rh;
   }
 
-  function threshFor(team) {
-    var base = { rate: THRESH.rate, unattr: THRESH.unattr, rise: THRESH.rise };
-    var o = team && THRESH.overrides[team];
-    if (o) {
-      if (o.rate != null) base.rate = o.rate;
-      if (o.unattr != null) base.unattr = o.unattr;
-      if (o.rise != null) base.rise = o.rise;
-    }
-    return base;
-  }
-  function renderAnomalies(range) {
-    var day = isSingleDay(range) ? { start: startOfDay(range.start), end: addDays(startOfDay(range.start), 1) } : { start: startOfDay(addDays(TODAY0, -1)), end: TODAY0 };
-    if (!isSingleDay(range) && range.end < TODAY0) day = { start: startOfDay(addDays(range.end, -1)), end: startOfDay(range.end) };
-    var prev7 = { start: addDays(day.start, -7), end: day.start };
-    var base = baseAds();
-    function dayStats(accId, r) {
-      var ads = base.filter(function (a) { return (!accId || a.accountId === accId) && inRange(a.createdAt, r); });
-      var rej = base.filter(function (a) { return (!accId || a.accountId === accId) && a.firstRejectAt && inRange(a.firstRejectAt, r); });
-      if (FILTERS.reason) rej = rej.filter(function (a) { return a.reasons.indexOf(FILTERS.reason) >= 0; });
-      return { ads: ads.length, rejects: rej.length, rate: ads.length ? rej.length / ads.length : 0 };
-    }
-    var flags = [];
-    var accs = visibleAccounts();
-    var teamAgg = {};
-    accs.forEach(function (a) {
-      var th = threshFor(a.team);
-      var cur = dayStats(a.id, day), prev = dayStats(a.id, prev7);
-      var prevRate = prev.ads ? prev.rejects / prev.ads / 7 : 0;
-      if (cur.rate > th.rate / 100 && cur.rejects > 0) flags.push({ kind: 'crit', rule: '阈值', title: a.name + ' · ' + a.buyer, detail: '拒审率 ' + pct(cur.rate) + '，超过 ' + th.rate + '% 阈值（' + cur.rejects + '/' + cur.ads + '）', type: 'account', id: a.id, score: cur.rate });
-      else if (prevRate > 0 && cur.rate > prevRate * (1 + th.rise / 100) && cur.rejects >= 2) flags.push({ kind: 'warn', rule: '环比', title: a.name + ' · ' + a.buyer, detail: '拒审率 ' + pct(cur.rate) + '，较近 7 日均值 ' + pct(prevRate) + ' 上涨 ' + Math.round((cur.rate / prevRate - 1) * 100) + '%（阈值 +' + th.rise + '%）', type: 'account', id: a.id, score: cur.rate });
-    });
-    TEAMS.forEach(function (t) {
-      var ids = accs.filter(function (a) { return a.team === t; }).map(function (a) { return a.id; });
-      if (!ids.length) return;
-      var cur = { ads: 0, rejects: 0 }, prev = { ads: 0, rejects: 0 };
-      ids.forEach(function (id) { var c = dayStats(id, day), p = dayStats(id, prev7); cur.ads += c.ads; cur.rejects += c.rejects; prev.ads += p.ads; prev.rejects += p.rejects; });
-      var rate = cur.ads ? cur.rejects / cur.ads : 0;
-      var prate = prev.ads ? prev.rejects / prev.ads / 7 : 0;
-      var th = threshFor(t);
-      if (rate > th.rate / 100 && cur.rejects > 0) flags.push({ kind: 'crit', rule: '阈值', title: t, detail: '团队拒审率 ' + pct(rate) + '，超过 ' + th.rate + '% 阈值（' + cur.rejects + '/' + cur.ads + '）', type: 'team', id: t, score: rate });
-      else if (prate > 0 && rate > prate * (1 + th.rise / 100) && cur.rejects >= 2) flags.push({ kind: 'warn', rule: '环比', title: t, detail: '团队拒审率 ' + pct(rate) + '，较近 7 日均值 ' + pct(prate) + ' 上涨 ' + Math.round((rate / prate - 1) * 100) + '%（阈值 +' + th.rise + '%）', type: 'team', id: t, score: rate });
-    });
-    var mats = visibleMaterials();
-    var thGlobal = threshFor(null);
-    mats.forEach(function (m) {
-      var curAds = base.filter(function (a) { return a.materialId === m.id && inRange(a.createdAt, day); });
-      var curRej = base.filter(function (a) { return a.materialId === m.id && a.firstRejectAt && inRange(a.firstRejectAt, day); });
-      var prevRej = base.filter(function (a) { return a.materialId === m.id && a.firstRejectAt && inRange(a.firstRejectAt, prev7); });
-      var prevAvg = prevRej.length / 7;
-      if (prevAvg > 0 && curRej.length > Math.max(2, prevAvg * (1 + thGlobal.rise / 100))) {
-        flags.push({ kind: 'warn', rule: '环比', title: m.name.split('_').slice(0, 6).join('_'), detail: '当日拒审 ' + curRej.length + ' 条，较近 7 日均值 ' + prevAvg.toFixed(1) + ' 条上涨 ' + Math.round((curRej.length / prevAvg - 1) * 100) + '%', type: 'material', id: m.id, score: curRej.length / Math.max(1, curAds.length) });
-      }
-    });
-    var unattrToday = base.filter(function (a) { return a.firstRejectAt && inRange(a.firstRejectAt, day) && !a.materialId; });
-    if (FILTERS.reason) unattrToday = unattrToday.filter(function (a) { return a.reasons.indexOf(FILTERS.reason) >= 0; });
-    if (unattrToday.length > thGlobal.unattr) {
-      flags.push({ kind: 'crit', rule: '阈值', title: '未归因池', detail: '当日未归因拒审 ' + unattrToday.length + ' 条，超过 ' + thGlobal.unattr + ' 条阈值', type: 'unattr', id: '', score: 1 });
-    }
-    TEAMS.forEach(function (t) {
-      var th = threshFor(t);
-      var ids = visibleAccounts().filter(function (a) { return a.team === t; }).map(function (a) { return a.id; });
-      var n = unattrToday.filter(function (a) { return ids.indexOf(a.accountId) >= 0; }).length;
-      if (n > th.unattr) flags.push({ kind: 'crit', rule: '阈值', title: t + ' · 未归因', detail: '当日未归因拒审 ' + n + ' 条，超过团队阈值 ' + th.unattr + ' 条', type: 'unattr-team', id: t, score: 1 });
-    });
-    flags.sort(function (a, b) { return (a.kind === 'crit' ? 0 : 1) - (b.kind === 'crit' ? 0 : 1) || b.score - a.score; });
-    flags = flags.slice(0, 6);
-    var list = document.getElementById('anomalyList');
-    document.getElementById('anomalyCount').textContent = flags.length ? flags.length + ' 项' : '0';
-    if (!flags.length) { list.innerHTML = '<div class="anomaly-empty">本期没有触发固定阈值或环比突增。</div>'; return; }
-    list.innerHTML = flags.map(function (f) {
-      return '<button class="anomaly' + (f.kind === 'warn' ? ' rise' : '') + '" data-anom="' + esc(f.type + '|' + f.id) + '">' +
-        '<div class="anomaly-top"><span class="sev ' + (f.kind === 'crit' ? 'crit' : 'warn') + '"><span class="sev-ico">' + (f.kind === 'crit' ? '!' : '↑') + '</span>' + f.rule + '</span><span class="anomaly-title">' + esc(f.title) + '</span></div>' +
-        '<div class="anomaly-detail">' + esc(f.detail) + '</div></button>';
-    }).join('');
-  }
-
   /* ---------- 渲染：账户与投手 ---------- */
   function renderAccounts() {
     var range = getRange();
@@ -1154,8 +1061,9 @@ tbody tr.clickable:hover{background:#fafaf6}
         spark: last7
       };
     }).filter(function (r) {
-      if (!q) return true;
-      return (r.acc.name + ' ' + r.acc.id + ' ' + r.acc.buyer + ' ' + r.acc.team).indexOf(q) >= 0;
+      if (q && (r.acc.name + ' ' + r.acc.id + ' ' + r.acc.buyer + ' ' + r.acc.team).indexOf(q) < 0) return false;
+      if ((FILTERS.person || FILTERS.lang || FILTERS.drama || FILTERS.attr) && r.ads === 0 && r.rejects === 0) return false;
+      return true;
     });
     if (SORT.account === 'rate_desc') rows.sort(function (a, b) { return b.rate - a.rate || b.rejects - a.rejects; });
     else if (SORT.account === 'reject_desc') rows.sort(function (a, b) { return b.rejects - a.rejects; });
@@ -1163,7 +1071,7 @@ tbody tr.clickable:hover{background:#fafaf6}
     else rows.sort(function (a, b) { return a.acc.name.localeCompare(b.acc.name, 'zh'); });
     document.getElementById('accountCount').textContent = rows.length + ' 个账户 · ' + rangeText(range);
     var empty = document.getElementById('accountEmpty');
-    var table = document.querySelector('#page-accounts .table-wrap');
+    var table = document.getElementById('accountTableWrap');
     if (!rows.length) { empty.hidden = false; table.hidden = true; return; }
     empty.hidden = true; table.hidden = false;
     document.getElementById('accountBody').innerHTML = rows.map(function (r) {
@@ -1176,7 +1084,6 @@ tbody tr.clickable:hover{background:#fafaf6}
         '<td class="ta-r">' + fmt(r.ads) + '</td>' +
         '<td class="ta-r">' + fmt(r.rejects) + '</td>' +
         '<td class="ta-r"><span class="meter"><span class="meter-track"><span class="meter-fill' + bad + '" style="width:' + Math.min(100, r.rate * 100 / 0.35) + '%"></span></span><span>' + pct(r.rate) + '</span></span></td>' +
-        '<td class="ta-r">' + pct(r.coverage) + '</td>' +
         '<td class="spark-cell">' + sparklineSvg(r.spark, r.rate > 0.2 ? RED : BLUE) + '</td>' +
         '<td>' + status + '</td>' +
         '</tr>';
@@ -1220,7 +1127,7 @@ tbody tr.clickable:hover{background:#fafaf6}
     else rows.sort(function (a, b) { return a.mat.name.localeCompare(b.mat.name, 'zh'); });
     document.getElementById('materialCount').textContent = rows.length + ' 个素材 · ' + rangeText(range);
     var empty = document.getElementById('materialEmpty');
-    var table = document.querySelector('#page-materials .table-wrap');
+    var table = document.getElementById('materialTableWrap');
     if (!rows.length) { empty.hidden = false; table.hidden = true; return; }
     empty.hidden = true; table.hidden = false;
     document.getElementById('materialBody').innerHTML = rows.map(function (r) {
@@ -1267,10 +1174,9 @@ tbody tr.clickable:hover{background:#fafaf6}
       '</tr>';
   }
 
-  function filteredRejects(range, extra) {
+  function filteredRejects(range) {
     var base = baseAds().filter(function (a) { return a.firstRejectAt && inRange(a.firstRejectAt, range); });
     if (FILTERS.reason) base = base.filter(function (a) { return a.reasons.indexOf(FILTERS.reason) >= 0; });
-    if (extra === 'unattributed') base = base.filter(function (a) { return !a.materialId; });
     return base.sort(function (a, b) { return b.firstRejectAt - a.firstRejectAt; });
   }
   function searchAds(ads, q) {
@@ -1301,25 +1207,6 @@ tbody tr.clickable:hover{background:#fafaf6}
     if (!rows.length) { empty.hidden = false; table.hidden = true; } else { empty.hidden = true; table.hidden = false; }
     document.getElementById('detailBody').innerHTML = pageRows.map(function (a) { return adRow(a, false); }).join('');
     renderPager('detailPager', rows.length, PG.detail, totalPages, 'detail');
-  }
-  function renderUnattributed() {
-    var range = getRange();
-    var q = SEARCH.unattr.trim();
-    var rows = searchAds(filteredRejects(range, 'unattributed'), q);
-    var allRej = filteredRejects(range);
-    var coverage = allRej.length ? (allRej.length - rows.length) / allRej.length : 0;
-    document.getElementById('unattrSummary').innerHTML =
-      '<span><b>' + fmt(rows.length) + '</b>未归因拒审</span>' +
-      '<span><b>' + fmt(allRej.length) + '</b>拒审总数</span>' +
-      '<span><b>' + pct(coverage) + '</b>归因覆盖率</span>';
-    var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-    PG.unattr = clamp(PG.unattr, 1, totalPages);
-    var pageRows = rows.slice((PG.unattr - 1) * PAGE_SIZE, PG.unattr * PAGE_SIZE);
-    var empty = document.getElementById('unattrEmpty');
-    var table = document.querySelector('#page-unattributed .table-wrap');
-    if (!rows.length) { empty.hidden = false; table.hidden = true; } else { empty.hidden = true; table.hidden = false; }
-    document.getElementById('unattrBody').innerHTML = pageRows.map(function (a) { return adRow(a, true); }).join('');
-    renderPager('unattrPager', rows.length, PG.unattr, totalPages, 'unattr');
   }
   function renderPager(id, total, page, totalPages, key) {
     var el = document.getElementById(id);
@@ -1420,52 +1307,6 @@ tbody tr.clickable:hover{background:#fafaf6}
     openDrawer();
   }
 
-  /* ---------- 阈值设置抽屉 ---------- */
-  function fillThreshForm(scope) {
-    var o = scope === 'global' ? THRESH : (THRESH.overrides[scope] || {});
-    document.getElementById('thRate').value = o.rate != null ? o.rate : THRESH.rate;
-    document.getElementById('thUnattr').value = o.unattr != null ? o.unattr : THRESH.unattr;
-    document.getElementById('thRise').value = o.rise != null ? o.rise : THRESH.rise;
-    document.getElementById('thErr').textContent = '';
-  }
-  function openSettingsDrawer() {
-    document.getElementById('drawerEyebrow').textContent = 'SETTINGS / THRESHOLDS';
-    document.getElementById('drawerTitle').textContent = '异常高亮阈值';
-    document.getElementById('drawerHint').textContent = '仅管理员可调整 · 保存后立即重算';
-    document.getElementById('drawerBack').hidden = true;
-    var opts = '<option value="global">全局默认</option>' + TEAMS.map(function (t) { return '<option value="' + esc(t) + '">' + esc(t) + '</option>'; }).join('');
-    var inputStyle = 'width:100%;height:32px;border:1px solid var(--line-strong);border-radius:4px;background:var(--surface);padding:0 8px;font-size:12px';
-    var body = '<div class="meta-grid">' +
-      '<div class="meta-item"><div class="k">适用范围</div><select id="thScope" style="' + inputStyle + '">' + opts + '</select></div>' +
-      '<div class="meta-item"><div class="k">拒审率阈值 / %</div><input id="thRate" type="number" min="0" max="100" step="0.1" style="' + inputStyle + '"></div>' +
-      '<div class="meta-item"><div class="k">未归因数阈值 / 条</div><input id="thUnattr" type="number" min="0" max="999" step="1" style="' + inputStyle + '"></div>' +
-      '<div class="meta-item"><div class="k">环比突增阈值 / %</div><input id="thRise" type="number" min="0" max="1000" step="1" style="' + inputStyle + '"></div>' +
-      '</div>' +
-      '<div class="hint" style="font-size:11px;color:var(--muted);line-height:1.6">团队未单独配置时沿用全局值。拒审率为当日拒审广告数 ÷ 当日新建广告数；未归因阈值为当日未归因拒审条数；环比为较近 7 日均值的上涨比例。</div>' +
-      '<div id="thErr" style="font-size:11px;color:var(--red);min-height:16px"></div>' +
-      '<div style="display:flex;gap:8px"><button class="btn" id="thSave" style="flex:1">保存阈值</button><button class="btn line" id="thCancel">取消</button></div>';
-    document.getElementById('drawerBody').innerHTML = body;
-    fillThreshForm('global');
-    document.getElementById('thScope').addEventListener('change', function (e) { fillThreshForm(e.target.value); });
-    document.getElementById('thSave').addEventListener('click', function () {
-      var scope = document.getElementById('thScope').value;
-      var rate = parseFloat(document.getElementById('thRate').value);
-      var unattr = parseFloat(document.getElementById('thUnattr').value);
-      var rise = parseFloat(document.getElementById('thRise').value);
-      if (isNaN(rate) || isNaN(unattr) || isNaN(rise) || rate < 0 || rate > 100 || unattr < 0 || rise < 0) {
-        document.getElementById('thErr').textContent = '请填写有效阈值：拒审率 0–100，未归因与环比不小于 0。';
-        return;
-      }
-      var val = { rate: rate, unattr: unattr, rise: rise };
-      if (scope === 'global') { THRESH.rate = rate; THRESH.unattr = unattr; THRESH.rise = rise; }
-      else { THRESH.overrides[scope] = val; }
-      closeDrawer();
-      renderOverview();
-    });
-    document.getElementById('thCancel').addEventListener('click', closeDrawer);
-    openDrawer();
-  }
-
   /* ---------- 提示浮层 ---------- */
   function showTip(text, x, y) {
     var tip = document.getElementById('tip');
@@ -1479,23 +1320,20 @@ tbody tr.clickable:hover{background:#fafaf6}
 
   /* ---------- 事件 ---------- */
   function resetFilters() {
-    FILTERS = { team: '', buyer: '', editor: '', project: '', lang: '', drama: '', reason: '', attr: '', account: '' };
-    SEARCH = { account: '', material: '', detail: '', unattr: '' };
-    PG = { detail: 1, unattr: 1 };
+    FILTERS = { team: '', person: '', lang: '', drama: '', attr: '', account: '' };
+    SEARCH = { account: '', material: '', detail: '' };
+    PG = { detail: 1 };
     document.getElementById('accountSearch').value = '';
     document.getElementById('materialSearch').value = '';
     document.getElementById('detailSearch').value = '';
-    document.getElementById('unattrSearch').value = '';
-    ['fTeam', 'fBuyer', 'fEditor', 'fProject', 'fLang', 'fDrama', 'fReason', 'fAttr'].forEach(function (id) { var el = document.getElementById(id); if (el) el.value = ''; });
+    ['fTeam', 'fPerson', 'fLang', 'fDrama', 'fAttr'].forEach(function (id) { var el = document.getElementById(id); if (el) el.value = ''; });
   }
   function goPage(p) {
     PAGE = p;
     renderChrome();
     if (p === 'overview') renderOverview();
-    else if (p === 'accounts') renderAccounts();
-    else if (p === 'materials') renderMaterials();
+    else if (p === 'team') { renderAccounts(); renderMaterials(); }
     else if (p === 'detail') renderDetail();
-    else if (p === 'unattributed') renderUnattributed();
   }
   function bindEvents() {
     document.getElementById('nav').addEventListener('click', function (e) {
@@ -1513,13 +1351,13 @@ tbody tr.clickable:hover{background:#fafaf6}
       var b = e.target.closest('button[data-preset]');
       if (!b) return;
       PRESET = b.getAttribute('data-preset');
-      PG = { detail: 1, unattr: 1 };
+      PG = { detail: 1 };
       renderAll();
     });
-    ['fTeam', 'fBuyer', 'fEditor', 'fProject', 'fLang', 'fDrama', 'fReason', 'fAttr'].forEach(function (id) {
+    ['fTeam', 'fPerson', 'fLang', 'fDrama', 'fAttr'].forEach(function (id) {
       document.getElementById(id).addEventListener('change', function (e) {
         FILTERS[id.slice(1).toLowerCase()] = e.target.value;
-        PG = { detail: 1, unattr: 1 };
+        PG = { detail: 1 };
         renderAll();
       });
     });
@@ -1530,16 +1368,8 @@ tbody tr.clickable:hover{background:#fafaf6}
     document.getElementById('accountSearch').addEventListener('input', debounce(function (e) { SEARCH.account = e.target.value; renderAccounts(); }, 120));
     document.getElementById('materialSearch').addEventListener('input', debounce(function (e) { SEARCH.material = e.target.value; renderMaterials(); }, 120));
     document.getElementById('detailSearch').addEventListener('input', debounce(function (e) { SEARCH.detail = e.target.value; PG.detail = 1; renderDetail(); }, 120));
-    document.getElementById('unattrSearch').addEventListener('input', debounce(function (e) { SEARCH.unattr = e.target.value; PG.unattr = 1; renderUnattributed(); }, 120));
     document.getElementById('accountSort').addEventListener('change', function (e) { SORT.account = e.target.value; renderAccounts(); });
     document.getElementById('materialSort').addEventListener('change', function (e) { SORT.material = e.target.value; renderMaterials(); });
-    document.getElementById('trendMode').addEventListener('click', function (e) {
-      var b = e.target.closest('button[data-mode]');
-      if (!b) return;
-      TREND_MODE = b.getAttribute('data-mode');
-      document.querySelectorAll('#trendMode button').forEach(function (x) { x.classList.toggle('active', x.getAttribute('data-mode') === TREND_MODE); });
-      renderOverview();
-    });
     document.getElementById('accountBody').addEventListener('click', function (e) {
       var tr = e.target.closest('tr[data-account]');
       if (!tr) return;
@@ -1556,31 +1386,11 @@ tbody tr.clickable:hover{background:#fafaf6}
       var tr = e.target.closest('tr[data-ad]');
       if (tr) { DRAWER_RETURN = null; openAdDrawer(tr.getAttribute('data-ad')); }
     });
-    document.getElementById('unattrBody').addEventListener('click', function (e) {
-      var tr = e.target.closest('tr[data-ad]');
-      if (tr) { DRAWER_RETURN = null; openAdDrawer(tr.getAttribute('data-ad')); }
-    });
     document.getElementById('detailPager').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-pg]');
       if (!b || b.disabled) return;
       PG.detail = parseInt(b.getAttribute('data-pg'), 10); renderDetail();
     });
-    document.getElementById('unattrPager').addEventListener('click', function (e) {
-      var b = e.target.closest('button[data-pg]');
-      if (!b || b.disabled) return;
-      PG.unattr = parseInt(b.getAttribute('data-pg'), 10); renderUnattributed();
-    });
-    document.getElementById('anomalyList').addEventListener('click', function (e) {
-      var b = e.target.closest('[data-anom]');
-      if (!b) return;
-      var parts = b.getAttribute('data-anom').split('|');
-      if (parts[0] === 'account') { FILTERS.account = parts[1]; PAGE = 'detail'; PG.detail = 1; renderAll(); }
-      else if (parts[0] === 'team') { FILTERS.team = parts[1]; syncFilterOptions(); PAGE = 'accounts'; renderAll(); }
-      else if (parts[0] === 'material') { openMaterialDrawer(parts[1]); }
-      else if (parts[0] === 'unattr') { FILTERS.attr = ''; PAGE = 'unattributed'; renderAll(); }
-      else if (parts[0] === 'unattr-team') { FILTERS.team = parts[1]; FILTERS.attr = ''; syncFilterOptions(); PAGE = 'unattributed'; renderAll(); }
-    });
-    document.getElementById('btnThreshold').addEventListener('click', openSettingsDrawer);
     document.getElementById('drawerClose').addEventListener('click', closeDrawer);
     document.getElementById('drawerMask').addEventListener('click', closeDrawer);
     document.getElementById('drawerBack').addEventListener('click', function () {
@@ -1626,8 +1436,7 @@ tbody tr.clickable:hover{background:#fafaf6}
     });
     window.addEventListener('resize', debounce(function () {
       if (PAGE === 'overview') renderOverview();
-      else if (PAGE === 'accounts') renderAccounts();
-      else if (PAGE === 'materials') renderMaterials();
+      else if (PAGE === 'team') { renderAccounts(); renderMaterials(); }
     }, 180));
   }
 
@@ -1638,7 +1447,6 @@ tbody tr.clickable:hover{background:#fafaf6}
     renderAccounts();
     renderMaterials();
     renderDetail();
-    renderUnattributed();
   }
 
   function init() {
